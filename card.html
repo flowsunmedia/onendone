@@ -272,7 +272,11 @@ async function fetchGroups(){ try{ const r=await fetch("/api?event="+encodeURICo
 function renderStart(){
   const sel=document.getElementById("startSel"); if(!sel) return;
   const gs=[...(SRV.groups||[])].sort((a,b)=>a.startHole-b.startHole);
-  sel.innerHTML=`<option value="">${gs.length?"Pick your group…":"No groups yet — ask the admin"}</option>`+gs.map(g=>`<option value="${g.id}" ${state.serverGroupId===g.id?"selected":""}>Hole ${g.startHole+1} · ${esc(g.name||"Start hole "+(g.startHole+1))}</option>`).join("");
+  if(gs.length){
+    sel.innerHTML=`<option value="">Pick your group…</option>`+gs.map(g=>`<option value="${g.id}" ${state.serverGroupId===g.id?"selected":""}>Hole ${g.startHole+1} · ${esc(g.name||"Start hole "+(g.startHole+1))}</option>`).join("");
+  } else {
+    sel.innerHTML=`<option value="">Pick your starting hole…</option>`+HOLES.map((h,i)=>`<option value="h:${i}" ${!state.serverGroupId&&state.startHole===i?"selected":""}>Hole ${i+1} · basket ${h[0]}</option>`).join("");
+  }
 }
 function holeSeq(){ const st=state.startHole||0; return HOLES.map((_,k)=>(st+k)%36); }
 function renderTournaments(){
@@ -393,6 +397,7 @@ document.getElementById("clear").addEventListener("click", ()=>{
 });
 document.getElementById("date").addEventListener("input", e=>{state.date=e.target.value; save();});
 document.getElementById("startSel").addEventListener("change", e=>{
+  if(e.target.value.startsWith("h:")){ const i=+e.target.value.slice(2); state.serverGroupId=null; state.startHole=i; state.hole=i; state.event="Start hole "+(i+1); document.getElementById("event").value=state.event; save(); build(); if(state.view==="hole") renderHole(); return; }
   const g=(SRV.groups||[]).find(x=>x.id===e.target.value);
   if(!g){ renderStart(); return; }
   const mem=(SRV.players||[]).filter(p=>p.groupId===g.id);
@@ -505,7 +510,7 @@ function backupFile(){
   return new File([JSON.stringify({...state, sentAt:new Date().toISOString()},null,1)],name,{type:"application/json"});
 }
 document.getElementById("send").onclick=async()=>{
-  if(!state.serverGroupId||state.startHole===undefined){ alert("Pick your group at the top first (starting hole + group name). Results can't be sent without it."); return; }
+  if(state.startHole===undefined||(SRV.groups&&SRV.groups.length&&!state.serverGroupId)){ alert("Pick your group at the top first (starting hole + group name). Results can't be sent without it."); return; }
   const f=backupFile();
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
   if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can keep playing and send again later. Send now?")) return;

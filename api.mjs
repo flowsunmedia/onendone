@@ -10,7 +10,7 @@ async function read(store, ev) {
   const d = (await store.get("event:" + ev, { type: "json" })) || {};
   d.players ||= [];   // {id,name,disc,division,groupId,createdAt}
   d.groups ||= [];    // {id,startHole,name,createdAt}
-  d.status ||= "signup"; // signup | live
+  d.status ||= "live"; // signup | live  (starts open for testing; admin can "Reopen sign-ups" to lock cards before the real round)
   d.updatedAt ||= 0;
   return d;
 }
