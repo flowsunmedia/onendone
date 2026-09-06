@@ -12,7 +12,8 @@
   header h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;flex:1}
   header h1::before{content:"★ ";color:var(--gold)}
   header select{border:2px solid var(--red);border-radius:8px;padding:8px;font-size:16px;font-family:inherit;max-width:180px}
-  header .lk{background:transparent;color:#fff;border:2px solid #fff;padding:7px 12px;font-size:14px}
+  header .lk{background:transparent;color:#fff;border:2px solid #fff;border-radius:8px;padding:7px 12px;font-size:14px;font-family:inherit}
+  header a.lk{background:var(--gold);color:var(--navy);border-color:var(--gold)}
   .stripes{height:12px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
   nav{display:flex;background:var(--paper);border-bottom:3px solid var(--navy);position:sticky;top:0;z-index:5;overflow-x:auto}
   nav button{flex:1;min-width:88px;border:0;background:transparent;font-family:inherit;font-size:15px;font-weight:800;color:var(--navy);padding:14px 6px;border-bottom:4px solid transparent;cursor:pointer;white-space:nowrap}
@@ -72,7 +73,7 @@
   #sheet .lab{font-size:14px;font-weight:800;color:var(--navy);margin:12px 0 4px}
   #sheet .danger{background:#fff;color:var(--red);border:2px solid var(--red)}
   #lock{display:none;text-align:center;padding:50px 16px}
-  body.locked #lock{display:block} body.locked main,body.locked nav,body.locked header select,body.locked header .lk{display:none}
+  body.locked #lock{display:block} body.locked main,body.locked nav,body.locked header select,body.locked header button.lk{display:none}
   #lock input{font-size:32px;padding:14px;width:200px;text-align:center;letter-spacing:8px}
   #lock button{font-size:20px;padding:16px 28px;margin-top:14px}
   .chk{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);font-size:18px}
@@ -85,6 +86,7 @@
 <header>
   <h1>One N Done · Admin</h1>
   <select id="tsel"></select>
+  <a class="lk" href="card.html" style="text-decoration:none;font-weight:800">Scorecard</a>
   <button class="lk" id="lockBtn">Lock</button>
 </header>
 <div class="stripes"></div>
