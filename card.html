@@ -180,6 +180,15 @@
   </div>
 </header>
 <div class="stripes"></div>
+<div id="gate" style="display:none;max-width:560px;margin:30px auto;padding:0 16px;text-align:center">
+  <div style="background:#fff;border-radius:16px;padding:26px 18px;border-left:10px solid var(--red)">
+    <div style="font-size:26px;font-weight:900;color:var(--green)">★ Round hasn't started yet ★</div>
+    <p style="font-size:17px;line-height:1.5;margin:12px 0 18px">Scorecards open when the admin starts the round. Until then, get signed up and into a group.</p>
+    <a class="btn" href="groups.html" style="background:var(--red);color:#fff;font-size:19px;padding:14px 22px;display:inline-block">Go to groups ★</a>
+    <div style="margin-top:14px"><a href="index.html" style="color:var(--green);font-weight:700">Sign up</a></div>
+    <div id="gateMsg" style="margin-top:14px;font-size:13px;color:var(--muted)"></div>
+  </div>
+</div>
 
 <div class="bar">
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
@@ -529,6 +538,15 @@ document.getElementById("loadGroup").onclick=async()=>{
   ensureIds(); save(); build(); renderStart(); setView("card"); alert(`Loaded ${mem.length} players for start hole ${g.startHole+1}.`);
 };
 load(); build(); renderTournaments(); renderStart(); setView(state.view||"card");
+(async function gate(){
+  const EVENT=(localStorage.getItem("ond-event")||"onendone");
+  const isAdm=(()=>{ try{ return sessionStorage.getItem("dg-admin")==="1"; }catch(e){ return false; } })();
+  const show=(on,msg)=>{ document.getElementById("gate").style.display=on?"block":"none"; ["header",".bar",".wrap",".legend","#holeview"].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.style.display=on?"none":""; }); if(msg) document.getElementById("gateMsg").textContent=msg; };
+  let status=null; try{ status=localStorage.getItem("ond-status"); }catch(e){}
+  try{ const r=await fetch("/api?event="+encodeURIComponent(EVENT),{cache:"no-store"}); const d=await r.json(); status=d.status||"signup"; localStorage.setItem("ond-status",status); }
+  catch(e){ if(status===null){ show(true,"Can't reach the server to check. Try again when you have signal."); return; } }
+  if(status!=="live" && !isAdm){ show(true,""); setTimeout(gate,10000); } else { show(false); }
+})();
 if(!storageWorks()){ const st=document.getElementById("status"); st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
 </script>
 </body>

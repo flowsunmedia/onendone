@@ -53,6 +53,7 @@
 <div class="stripes"></div>
 <main>
   <div id="err" class="err" style="display:none"></div>
+  <div id="liveBanner" style="display:none;background:var(--navy);color:#fff;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center"><div style="font-size:20px;font-weight:900;color:var(--gold)">★ The round has started ★</div><div style="margin:6px 0 10px">Scorekeeper for each group: open the scorecard and tap ⬇ Load my group.</div><a class="btn" href="card.html">Open scorecard</a></div>
   <div id="me"></div>
   <h2>Groups <small id="gcount"></small></h2>
   <div id="glist"></div>
@@ -76,6 +77,7 @@ async function refresh(){ try{ data=await api(); $("err").style.display="none"; 
 function sheet(h){ $("sheet").innerHTML=h; document.body.classList.add("sheet"); } function closeSheet(){ document.body.classList.remove("sheet"); }
 $("sheetBg").onclick=closeSheet;
 function render(){
+  $("liveBanner").style.display=data.status==="live"?"block":"none"; try{ localStorage.setItem("ond-status",data.status||"signup"); }catch(e){}
   const players=data.players, groups=[...data.groups].sort((a,b)=>a.startHole-b.startHole);
   const mine=me&&players.find(p=>p.id===me.id); if(mine) me=mine;
   $("me").innerHTML = mine ? `<div class="me"><div class="n"><b>${esc(mine.name)}</b><span>${esc(mine.disc)||"no disc"} · ${esc(mine.division)||"no division"}${mine.groupId?" · in a group":" · not in a group yet"}</span></div><a class="btn quiet" href="index.html?edit=1">Edit</a></div>`

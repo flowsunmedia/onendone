@@ -10,6 +10,7 @@ async function read(store, ev) {
   const d = (await store.get("event:" + ev, { type: "json" })) || {};
   d.players ||= [];   // {id,name,disc,division,groupId,createdAt}
   d.groups ||= [];    // {id,startHole,createdAt}
+  d.status ||= "signup"; // signup | live
   d.updatedAt ||= 0;
   return d;
 }
@@ -77,9 +78,15 @@ export default async (req) => {
     d.groups = d.groups.filter(x => x.id !== body.groupId); d.players.forEach(p => { if (p.groupId === body.groupId) p.groupId = null; });
     await write(store, ev, d); return json({ ok: true, data: d });
   }
+  if (act === "setStatus") {
+    if (!adminOk) return json({ error: "admin only" }, 403);
+    if (!["signup", "live"].includes(body.status)) return json({ error: "bad status" }, 400);
+    d.status = body.status; d.startedAt = body.status === "live" ? Date.now() : null;
+    await write(store, ev, d); return json({ ok: true, data: d });
+  }
   if (act === "reset") {
     if (!adminOk) return json({ error: "admin only" }, 403);
-    await write(store, ev, { players: [], groups: [] }); return json({ ok: true });
+    await write(store, ev, { players: [], groups: [], status: "signup" }); return json({ ok: true });
   }
   return json({ error: "unknown action" }, 400);
 };

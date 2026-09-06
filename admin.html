@@ -115,6 +115,7 @@
   <section id="groups">
     <div class="sum" id="gSum"></div>
     <div id="gList"></div>
+    <div class="card" style="padding:14px;border-left-color:var(--red)"><div style="font-weight:800;font-size:18px;color:var(--navy)" id="roundState">Round: …</div><div class="row"><button class="big" id="startRound">▶ Start round</button></div><div class="row"><button class="quiet" id="stopRound">Reopen sign-ups (round not started)</button></div><div class="note">Scorecards stay hidden for players until you start the round. Groups and sign-ups keep working either way.</div></div>
     <div class="row"><button id="syncBtn">⟳ Sync from sign-up site</button></div>
     <div class="row"><button class="quiet" id="addGroups">＋ Add groups' results (files)</button><button class="quiet" id="clearGroups">Remove added groups</button></div>
     <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
@@ -415,9 +416,13 @@ async function syncServer(quiet){
   const fileHoles=new Set(state.groups.map(g=>state.startOv[g.cardId||("l:"+g.label)]??g.startHole).filter(x=>x!=null));
   state.planned=state.planned.filter(g=>!g.serverId);
   d.groups.forEach(g=>{ if(fileHoles.has(g.startHole)) return; const mem=d.players.filter(p=>p.groupId===g.id).map(p=>({id:"s"+p.id,name:p.name,disc:p.disc,division:p.division,scores:{}})); state.planned.push({id:"srv"+g.id,serverId:g.id,label:"Start hole "+(g.startHole+1),startHole:g.startHole,players:mem}); });
+  srvStatus=d.status||"signup"; $("roundState").textContent=srvStatus==="live"?"Round: STARTED — scorecards are open":"Round: not started — scorecards hidden"; $("roundState").style.color=srvStatus==="live"?"var(--blue-dk)":"var(--red)";
   save(); renderAll(); $("status").textContent="Synced with sign-up site "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 }
+let srvStatus="signup";
 $("syncBtn").onclick=()=>syncServer(false);
+$("startRound").onclick=async()=>{ if(!confirm("Start the round? Every group's scorecard opens up.")) return; try{ await apiPost({action:"setStatus",status:"live"}); await syncServer(true); alert("Round started. Scorecards are open."); }catch(e){ alert("Couldn't reach the server."); } };
+$("stopRound").onclick=async()=>{ if(!confirm("Hide scorecards again and go back to sign-up mode?")) return; try{ await apiPost({action:"setStatus",status:"signup"}); await syncServer(true); }catch(e){ alert("Couldn't reach the server."); } };
 function renderAll(){ renderT(); renderGroups(); renderPlayers(); renderBoard(); renderSignups(); }
 load(); renderT(); setAdmin(isAdmin()); if(isAdmin()) syncServer(true); setInterval(()=>{ if(isAdmin()) syncServer(true); },20000);
 </script>
