@@ -26,6 +26,7 @@
   .meta input{border:2px solid var(--red);border-radius:6px;padding:7px 9px;font-size:15px;min-width:150px;font-family:inherit}
   .bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:var(--paper);border-bottom:3px solid var(--green);position:sticky;top:0;z-index:5;box-shadow:0 2px 0 var(--red)}
   button{font-family:inherit;font-size:15px;font-weight:600;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;background:var(--red);color:#fff}
+  a.btn{display:inline-block;text-decoration:none;font-size:15px;font-weight:600;border-radius:8px;padding:9px 14px;background:#E4E9F7;color:var(--green)}
   button.quiet{background:#E4E9F7;color:var(--green)}
   button:focus-visible,input:focus-visible{outline:3px solid #7FB3FF;outline-offset:1px}
   .wrap{overflow-x:auto;padding:0 0 24px}
@@ -174,14 +175,14 @@
   <div class="meta">
     <label>Tournament <span style="display:flex;gap:6px"><select id="tsel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:150px"></select><button id="tnew" style="padding:7px 10px">New</button><button id="tdel" class="quiet" style="padding:7px 10px" title="Delete this tournament">×</button></span></label>
     <label>Date <input id="date" type="date"></label>
-    <label>Name / group <input id="event" type="text" placeholder="e.g. Practice run, Group 3"></label>
+    <label>Starting hole (pick first) <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
+    <label>Starting hole group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
   </div>
 </header>
 <div class="stripes"></div>
 
 <div class="bar">
-  <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button><button id="vBoard" class="admin">Leaderboard</button></div>
-  <button id="vSign" class="admin big">★ Sign-up list</button>
+  <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
   <button id="add">+ Add player</button>
   <button class="quiet" onclick="window.print()">Print / save as PDF</button>
   <button id="send">Send results to admin</button>
@@ -189,44 +190,8 @@
   <button class="quiet" id="restoreBtn">Restore backup</button>
   <input type="file" id="restore" accept=".json,application/json" style="display:none">
   <button class="quiet" id="clear">Start new round</button>
-  <button class="quiet" id="adminBtn">Admin</button>
+  <a class="btn" id="adminBtn" href="admin.html">Admin</a>
   <span class="status" id="status"></span>
-</div>
-
-<div id="signup">
-  <div class="su-form">
-    <input id="suName" class="full" placeholder="Player name" aria-label="Player name">
-    <input id="suDisc" placeholder="Disc" aria-label="Disc">
-    <select id="suDiv" aria-label="Division"><option value="">Division…</option></select>
-    <button id="suAdd" class="full">＋ Add to sign-up list</button>
-  </div>
-  <div class="su-paste">
-    <h3>Paste sign-ups from texts</h3>
-    <p>People who used the sign-up link send you a line like "One N Done sign-up: Name | Disc | Division". Paste any number of them here.</p>
-    <textarea id="suPaste" placeholder="Paste here…"></textarea>
-    <button class="quiet" id="suPasteBtn" style="margin-top:8px">Add pasted sign-ups</button>
-  </div>
-  <div class="su-count" id="suCount"></div>
-  <div class="su-list"><table id="suTable"></table></div>
-  <div class="su-actions">
-    <button id="suToCard">Put all sign-ups on this card</button>
-    <button class="quiet" id="suCsv">Download sign-up list</button>
-    <button class="quiet" id="suClear">Clear list</button>
-  </div>
-</div>
-
-<div id="board">
-  <div class="lb-bar">
-    <button id="addGroups">+ Add other groups' results</button>
-    <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
-    <button class="quiet" id="csvBoard">Download spreadsheet</button>
-    <button class="quiet" id="copyBoard">Copy leaderboard</button>
-    <button class="quiet" id="clearGroups">Remove added groups</button>
-  </div>
-  <div class="seg" style="margin-bottom:12px"><button id="lbDiv" class="on">By division</button><button id="lbAll">Everyone</button></div>
-  <div class="lb-sum" id="lbsum"></div>
-  <div id="lbtable"></div>
-  <div class="lb-note" id="lbnote"></div>
 </div>
 
 <div id="holeview">
@@ -249,7 +214,7 @@
   <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
   Baskets marked a/b/c are played more than once from different tees. Baskets 26 and 27 play red tee then blue tee.
   CTP marks the 18 closest-to-pin holes. Leave a box blank if a hole hasn't been played yet; totals count only the holes you've entered.
-  The leaderboard and other groups' results are for the tournament admin (tap Admin and enter the PIN). Under each player's name on the full card, pick their division and type the one disc they're throwing. Each tournament or round is saved separately: pick one at the top, or tap New to start another without touching the others. Tap Send results to admin whenever — sending never locks your scores, and you can send again later; the newest one counts. Scores save on this device automatically; Save backup also puts a copy in your files so you can restore it on any phone or computer.
+  Pick your group's starting hole at the top — the group name fills in by itself and Hole by hole starts there and wraps around. Under each player's name on the full card, pick their division and type the one disc they're throwing. Each tournament or round is saved separately: pick one at the top, or tap New to start another without touching the others. Tap Send results to admin whenever — sending never locks your scores, and you can send again later; the newest one counts. Scores save on this device automatically; Save backup also puts a copy in your files so you can restore it on any phone or computer.
 </div>
 
 <script>
@@ -291,14 +256,21 @@ function load(){
   state = store.tournaments[store.current].data;
   ensureIds();
 }
-function switchTournament(id){ if(!store.tournaments[id]) return; store.current=id; state=store.tournaments[id].data; ensureIds(); if(state.hole===undefined) state.hole=0; if(!state.groups) state.groups=[]; build(); renderTournaments(); setView(state.view||"card"); }
+function switchTournament(id){ if(!store.tournaments[id]) return; store.current=id; state=store.tournaments[id].data; ensureIds(); build(); renderTournaments(); renderStart(); setView(state.view||"card"); }
+function startLabel(i){ return `Hole ${i+1} (basket ${HOLES[i][0]})`; }
+function autoName(){ return state.startHole===undefined ? "" : `Start hole ${state.startHole+1}`; }
+function renderStart(){
+  const sel=document.getElementById("startSel"); if(!sel) return;
+  sel.innerHTML=`<option value="">Pick starting hole…</option>`+HOLES.map((h,i)=>`<option value="${i}" ${state.startHole===i?"selected":""}>${startLabel(i)}</option>`).join("");
+}
+function holeSeq(){ const st=state.startHole||0; return HOLES.map((_,k)=>(st+k)%36); }
 function renderTournaments(){
   const sel=document.getElementById("tsel"); if(!sel) return;
   const list=Object.values(store.tournaments).sort((a,b)=>b.created.localeCompare(a.created));
   sel.innerHTML=list.map(t=>`<option value="${t.id}" ${t.id===store.current?"selected":""}>${esc(t.name)}</option>`).join("");
 }
 let nextId=1;
-function ensureIds(){ state.players.forEach(p=>{ if(!p.id) p.id="p"+Date.now().toString(36)+(nextId++); }); if(!state.ctp) state.ctp={}; if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined||!HOLES[state.hole]) state.hole=0; if(!state.view) state.view="card"; }
+function ensureIds(){ state.players.forEach(p=>{ if(!p.id) p.id="p"+Date.now().toString(36)+(nextId++); }); if(!state.ctp) state.ctp={}; if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined||!HOLES[state.hole]) state.hole=state.startHole||0; if(!state.view) state.view="card"; }
 const DIVISIONS=["Kids","Beginners","Amateur","Advanced","Women","Pro","Masters","Grandmaster"];
 function allDivisions(){
   const set=new Set(DIVISIONS);
@@ -308,7 +280,7 @@ function allDivisions(){
 }
 function ctpCount(id){ return Object.values(state.ctp||{}).filter(v=>v===id).length; }
 function save(){
-  try{ if(store.current && store.tournaments[store.current]){ store.tournaments[store.current].data=state; if(state.event) store.tournaments[store.current].name=state.event; } localStorage.setItem(STORE, JSON.stringify(store));
+  try{ if(store.current && store.tournaments[store.current]){ store.tournaments[store.current].data=state; } localStorage.setItem(STORE, JSON.stringify(store));
     const st=document.getElementById("status"); if(st){ st.className="status"; st.textContent="Saved " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
   }catch(e){
     const st=document.getElementById("status"); if(st){ st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
@@ -402,13 +374,20 @@ body.addEventListener("keydown", e=>{
 });
 document.getElementById("add").addEventListener("click", ()=>{
   state.players.push({name:"Player "+(state.players.length+1),scores:{}}); ensureIds(); build();
-  if(state.view==="hole"){ renderHole(); setView("card"); }
+  if(state.view==="hole"){ renderHole(); }
   head.querySelector(`input[data-p="${state.players.length-1}"]`).select();
 });
 document.getElementById("clear").addEventListener("click", ()=>{
   if(confirm("Clear all scores and start a new round? Player names stay.")){ state.players.forEach(p=>p.scores={}); state.ctp={}; state.hole=0; build(); if(state.view==="hole") renderHole(); }
 });
 document.getElementById("date").addEventListener("input", e=>{state.date=e.target.value; save();});
+document.getElementById("startSel").addEventListener("change", e=>{
+  const prevAuto = !state.event || /^Start hole \d+$/.test(state.event) || state.event===store.tournaments[store.current].name;
+  state.startHole = e.target.value===""? undefined : +e.target.value;
+  if(prevAuto){ state.event=autoName(); document.getElementById("event").value=state.event; renderTournaments(); }
+  if(state.startHole!==undefined) state.hole=state.startHole;
+  save(); if(state.view==="hole") renderHole();
+});
 document.getElementById("tsel").addEventListener("change", e=>switchTournament(e.target.value));
 document.getElementById("tnew").onclick=()=>{
   const name=prompt("Name for the new tournament or round (e.g. Practice run, Saturday tournament):"); if(!name) return;
@@ -421,7 +400,7 @@ document.getElementById("tdel").onclick=()=>{
   if(!confirm("Are you sure? Deleting: "+t.name)) return;
   delete store.tournaments[store.current]; store.current=Object.keys(store.tournaments)[0]; save(); switchTournament(store.current);
 };
-document.getElementById("event").addEventListener("input", e=>{state.event=e.target.value; save(); renderTournaments();});
+document.getElementById("event").addEventListener("input", e=>{state.event=e.target.value; save();});
 
 
 // ---------- Hole-by-hole view ----------
@@ -431,23 +410,25 @@ if(state.view===undefined) state.view="card";
 // Throwing order for a hole: lowest score on the previous hole tees first; ties keep the order from that hole.
 function orderFor(h){
   let order = state.players.map((_,i)=>i);
-  for(let k=1;k<=h;k++){
-    const prev=k-1;
+  const seq=holeSeq(), upto=seq.indexOf(h);
+  for(let k=1;k<=upto;k++){
+    const prev=seq[k-1];
     const sc=i=>{const v=parseInt(state.players[i].scores[prev]); return isNaN(v)?Infinity:v;};
     order = order.map((i,pos)=>({i,pos})).sort((a,b)=>sc(a.i)-sc(b.i)||a.pos-b.pos).map(o=>o.i);
   }
   return order;
 }
 function running(i,uptoHole){
-  let s=0,par=0;
-  for(let k=0;k<=uptoHole;k++){const v=parseInt(state.players[i].scores[k]); if(!isNaN(v)){s+=v;par+=HOLES[k][2];}}
+  let s=0,par=0; const seq=holeSeq(), upto=seq.indexOf(uptoHole);
+  for(let q=0;q<=upto;q++){const k=seq[q]; const v=parseInt(state.players[i].scores[k]); if(!isNaN(v)){s+=v;par+=HOLES[k][2];}}
   return {s,par};
 }
 function renderHole(){
   const h=state.hole, H=HOLES[h];
-  document.getElementById("hvpos").textContent=`Hole ${h+1} of 36`;
-  document.getElementById("prev").disabled=h===0;
-  document.getElementById("next").disabled=h===35;
+  const seq=holeSeq(), pos=seq.indexOf(h);
+  document.getElementById("hvpos").textContent=`Hole ${h+1} · ${pos+1} of 36`;
+  document.getElementById("prev").disabled=pos===0;
+  document.getElementById("next").disabled=pos===35;
   const head=document.getElementById("hvhead");
   head.className="hv-head "+teeClass(H[1]);
   head.innerHTML=`<div class="num">${h+1}<small>${h<18?"front":"back"}</small></div>
@@ -457,11 +438,11 @@ function renderHole(){
   else { cb.style.display="none"; cb.innerHTML=""; }
   const order=orderFor(h);
   const upIdx = order.find(i=>state.players[i].scores[h]===undefined);
-  document.getElementById("hvorder").textContent = h===0 ? "Throwing order (first hole: card order)" : "Throwing order — best score on the last hole goes first";
+  document.getElementById("hvorder").textContent = pos===0 ? "Throwing order (first hole: card order)" : "Throwing order — best score on the last hole goes first";
   document.getElementById("hvlist").innerHTML = order.map((i,pos)=>{
     const p=state.players[i], v=p.scores[h]??"", n=parseInt(v);
     const r=running(i,h); const d=r.s-r.par;
-    const run = (r.par? `${r.s} thru ${Object.keys(p.scores).filter(k=>+k<=h).length} · ${d===0?"E":d>0?"+"+d:d}` : "no scores yet");
+    const run = (r.par? `${r.s} thru ${Object.keys(p.scores).length} · ${d===0?"E":d>0?"+"+d:d}` : "no scores yet");
     return `<div class="pl ${i===upIdx?"up":""}">
       <div class="who"><div class="n">${pos+1}. ${esc(p.name)}${p.division?`<span class="dv">${esc(p.division)}</span>`:""}${p.disc?`<span class="dv disc">${esc(p.disc)}</span>`:""}${i===upIdx?'<span class="up">UP</span>':""}</div><div class="run">${run}</div></div>
       <div class="ctl"><button data-step="-1" data-p="${i}" aria-label="minus">−</button>
@@ -469,7 +450,7 @@ function renderHole(){
       <button data-step="1" data-p="${i}" aria-label="plus">+</button></div></div>`;
   }).join("");
   const left = state.players.filter(p=>p.scores[h]===undefined).length;
-  document.getElementById("hvdone").textContent = left? "" : (h<35 ? "Everyone's in. Tap Next for the next hole." : "Round complete. Switch to Full card to see totals.");
+  document.getElementById("hvdone").textContent = left? "" : (pos<35 ? "Everyone's in. Tap Next for the next hole." : "Round complete. Switch to Full card to see totals.");
 }
 function setScore(i,v){ if(v==="") delete state.players[i].scores[state.hole]; else state.players[i].scores[state.hole]=String(v); build(); renderHole(); }
 document.getElementById("hvlist").addEventListener("click",e=>{
@@ -486,178 +467,18 @@ document.getElementById("hvlist").addEventListener("input",e=>{
   document.getElementById("hvdone").textContent="";
 });
 document.getElementById("hvlist").addEventListener("change",()=>renderHole());
-document.getElementById("prev").onclick=()=>{state.hole=Math.max(0,state.hole-1);save();renderHole();window.scrollTo(0,0);};
-document.getElementById("next").onclick=()=>{state.hole=Math.min(35,state.hole+1);save();renderHole();window.scrollTo(0,0);};
-// ---------- Leaderboard (this card + imported group backups) ----------
-if(!state.groups) state.groups=[];
-function playerLine(p,group){
-  let sc=0,par=0,thru=0,front=0,back=0;
-  HOLES.forEach((h,idx)=>{const v=parseInt(p.scores[idx]); if(!isNaN(v)){sc+=v;par+=h[2];thru++; if(idx<18) front+=v; else back+=v;}});
-  const status = thru===36?"done":thru>0?"play":"none";
-  return {name:p.name,disc:(p.disc||"").trim(),group,division:(p.division||"").trim()||"No division",sc,par,thru,front,back,diff:sc-par,status,scores:p.scores};
-}
-function rankRows(rows){
-  const played=rows.filter(r=>r.thru>0), none=rows.filter(r=>r.thru===0);
-  played.sort((a,b)=>a.diff-b.diff||b.thru-a.thru||a.sc-b.sc);
-  let rank=0,prev=null;
-  played.forEach((r,i)=>{ if(prev===null||r.diff!==prev){rank=i+1;} r.rank=rank; prev=r.diff; });
-  none.forEach(r=>r.rank=undefined);
-  return played.concat(none);
-}
-function boardRows(){
-  const rows=[];
-  const mine = state.event ? state.event : "This card";
-  state.players.forEach(p=>rows.push(playerLine(p,mine)));
-  state.groups.forEach(g=>g.players.forEach(p=>rows.push(playerLine(p,g.label))));
-  return rows;
-}
-const statusPill=r=>r.status==="done"?`<span class="st done">Finished</span>`:r.status==="play"?`<span class="st play">Thru ${r.thru}</span>`:`<span class="st none">Not started</span>`;
-const fmtPM=d=>d===0?"E":d>0?"+"+d:String(d);
-function lbDups(rows){ const c={}; rows.forEach(r=>{const k=r.name.trim().toLowerCase(); c[k]=(c[k]||new Set()).add(r.group);}); return new Set(Object.keys(c).filter(k=>c[k].size>1)); }
-function lbTable(rows,showDiv){
-  const dups=lbDups(boardRows());
-  return `<table class="lb"><tr><th>#</th><th>Player</th><th>Disc</th>${showDiv?"<th>Division</th>":""}<th>Group</th><th>Status</th><th style="text-align:center">Score</th><th style="text-align:center">+/−</th></tr>`+
-    rows.map(r=>`<tr class="${r.rank===1?"lead":""}"><td class="r">${r.rank??""}</td><td class="n">${esc(r.name)}${dups.has(r.name.trim().toLowerCase())?' <span class="st play" title="Same name in more than one group">⚠ in 2+ groups</span>':""}</td><td class="g">${esc(r.disc)||"—"}</td>${showDiv?`<td class="g">${esc(r.division)}</td>`:""}<td class="g">${esc(r.group)}</td><td>${statusPill(r)}</td><td class="num">${r.thru?r.sc:""}</td><td class="num pm ${r.thru?(r.diff<0?"under":r.diff>0?"over":""):""}">${r.thru?fmtPM(r.diff):""}</td></tr>`).join("")+`</table>`;
-}
-function renderBoard(){
-  const rows=boardRows(); let html="";
-  if(state.lbMode==="all"){ html=lbTable(rankRows(rows),true); }
-  else {
-    const divs=[...new Set(rows.map(r=>r.division))].sort((a,b)=>{const o=d=>d==="No division"?999:DIVISIONS.indexOf(d)<0?99:DIVISIONS.indexOf(d); return o(a)-o(b)||a.localeCompare(b);});
-    html=divs.map(dv=>`<div class="lb-head">${esc(dv)}</div>`+lbTable(rankRows(rows.filter(r=>r.division===dv)),false)).join("");
-  }
-  const dupCount=lbDups(rows).size;
-  if(dupCount) html=`<div class="hv-ctp" style="margin:0 0 12px">⚠ ${dupCount} name${dupCount>1?"s":""} appear in more than one group — check for doubles</div>`+html;
-  document.getElementById("lbtable").innerHTML=html;
-  const done=rows.filter(r=>r.status==="done").length, playing=rows.filter(r=>r.status==="play").length, ns=rows.filter(r=>r.status==="none").length;
-  document.getElementById("lbsum").innerHTML=`<div><b>${rows.length}</b>players</div><div><b>${done}</b>finished</div><div><b>${playing}</b>still playing</div><div><b>${ns}</b>not started</div>`;
-  document.getElementById("lbDiv").classList.toggle("on",state.lbMode!=="all");
-  document.getElementById("lbAll").classList.toggle("on",state.lbMode==="all");
-  const n=state.groups.length;
-  const glist = n? `<div style="margin-bottom:6px"><b>Groups added:</b> ${state.groups.map(g=>esc(g.label)+" ("+g.players.length+")").join(", ")}</div>` : "";
-  document.getElementById("lbnote").innerHTML = glist + (n?`Showing this card plus ${n} added group${n>1?"s":""}. `:"Showing this card only. ") +
-    "Pick each player's division and type their disc in the boxes under their name on the full card. Each group taps <b>Send results to admin</b> when they finish; save those files and tap <b>Add other groups' results</b> to load them (you can pick many at once). If a group sends more than once, the newest file replaces the old one — nobody gets counted twice and nobody is locked in. Ties share a rank; sorted by score to par, then holes played. <b>Download spreadsheet</b> gives you a file that opens in Excel, Numbers, or Google Sheets with every player, division rank, status, and hole-by-hole scores.";
-}
-document.getElementById("lbDiv").onclick=()=>{state.lbMode="div";save();renderBoard();};
-document.getElementById("lbAll").onclick=()=>{state.lbMode="all";save();renderBoard();};
-document.getElementById("addGroups").onclick=()=>document.getElementById("groupFiles").click();
-document.getElementById("groupFiles").addEventListener("change",e=>{
-  const files=[...e.target.files]; let done=0;
-  files.forEach(f=>{ const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.players){ const label=d.event||f.name.replace(/\.json$/i,""); const g={label,players:d.players,when:d.sentAt||new Date().toISOString()};
-          g.cardId=d.cardId||null;
-          const k=state.groups.findIndex(x=>(g.cardId && x.cardId===g.cardId) || x.label===label); if(k>=0) state.groups[k]=g; else state.groups.push(g); } }catch(err){} if(++done===files.length){ save(); renderBoard(); } }; r.readAsText(f); });
-  e.target.value="";
-});
-document.getElementById("clearGroups").onclick=()=>{ if(state.groups.length && confirm("Remove all added groups from the leaderboard? Your own card is not affected.")){ state.groups=[]; save(); renderBoard(); } };
-document.getElementById("csvBoard").onclick=()=>{
-  const rows=boardRows();
-  const divs=[...new Set(rows.map(r=>r.division))].sort((a,b)=>{const o=d=>d==="No division"?999:DIVISIONS.indexOf(d)<0?99:DIVISIONS.indexOf(d); return o(a)-o(b)||a.localeCompare(b);});
-  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const head=["Division","Rank in division","Player","Disc","Group","Status","Holes played","Front 18","Back 18","Total","+/- par"].concat(HOLES.map((h,i)=>`H${i+1} (B${h[0]} ${h[1]} P${h[2]})`));
-  const lines=[head.map(q).join(",")];
-  divs.forEach(dv=>rankRows(rows.filter(r=>r.division===dv)).forEach(r=>{
-    const st=r.status==="done"?"Finished":r.status==="play"?"Thru "+r.thru:"Not started";
-    lines.push([r.division,r.rank??"",r.name,r.disc,r.group,st,r.thru,r.thru?r.front:"",r.thru?r.back:"",r.thru?r.sc:"",r.thru?fmtPM(r.diff):""].concat(HOLES.map((h,i)=>r.scores[i]??"")).map(q).join(","));
-  }));
-  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="one-n-done-leaderboard-"+(state.event||"round").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".csv";
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-};
-document.getElementById("copyBoard").onclick=()=>{
-  const fmt=d=>d===0?"E":d>0?"+"+d:String(d);
-  const rows=boardRows(); const line=r=>`${r.rank??"-"}. ${r.name}${r.disc?" ["+r.disc+"]":""} (${r.group}) — ${r.thru?r.sc+" ("+fmt(r.diff)+"), "+(r.status==="done"?"finished":"thru "+r.thru):"not started"}`;
-  let txt="One N Done"+(state.event?" — "+state.event:"")+"\nLeaderboard\n";
-  if(state.lbMode==="all") txt+=rankRows(rows).map(line).join("\n");
-  else { const divs=[...new Set(rows.map(r=>r.division))].sort((a,b)=>{const o=d=>d==="No division"?999:DIVISIONS.indexOf(d)<0?99:DIVISIONS.indexOf(d); return o(a)-o(b)||a.localeCompare(b);}); txt+=divs.map(dv=>"\n"+dv+"\n"+rankRows(rows.filter(r=>r.division===dv)).map(line).join("\n")).join("\n"); }
-  const ok=()=>{const b=document.getElementById("copyBoard"); const o=b.textContent; b.textContent="Copied"; setTimeout(()=>b.textContent=o,1500);};
-  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(ok,()=>prompt("Copy this:",txt)); else prompt("Copy this:",txt);
-};
-// ---------- Admin lock ----------
-function isAdmin(){ try{ return sessionStorage.getItem("dg-admin")==="1"; }catch(e){ return window.__admin===true; } }
-function setAdmin(on){ try{ if(on) sessionStorage.setItem("dg-admin","1"); else sessionStorage.removeItem("dg-admin"); }catch(e){ window.__admin=on; }
-  document.body.classList.toggle("admin",on);
-  document.getElementById("adminBtn").textContent = on ? "Admin: on (lock)" : "Admin";
-  if(!on && (state.view==="board"||state.view==="signup")) setView("card");
-}
-document.getElementById("adminBtn").onclick=()=>{
-  if(isAdmin()){ setAdmin(false); return; }
-  const pin=prompt("Enter the admin PIN to see the leaderboard and all groups' results:");
-  if(pin===null) return;
-  if(pin===ADMIN_PIN) setAdmin(true); else alert("Wrong PIN.");
-};
-// ---------- Sign-up list (admin) ----------
-if(!state.signups) state.signups=[];
-function renderSignups(){
-  const sel=document.getElementById("suDiv"); if(sel.options.length<=1) sel.innerHTML=`<option value="">Division…</option>`+DIVISIONS.map(d=>`<option>${d}</option>`).join("");
-  const list=state.signups;
-  const byDiv={}; list.forEach(x=>{byDiv[x.division]=(byDiv[x.division]||0)+1;});
-  document.getElementById("suCount").textContent=`${list.length} signed up` + (list.length?" — "+Object.entries(byDiv).sort((a,b)=>DIVISIONS.indexOf(a[0])-DIVISIONS.indexOf(b[0])).map(([d,c])=>`${d} ${c}`).join(", "):"");
-  document.getElementById("suTable").innerHTML=`<tr><th>#</th><th>Name</th><th>Disc</th><th>Division</th><th></th></tr>`+
-    list.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${esc(x.name)}</td><td>${esc(x.disc)}</td><td>${esc(x.division)}</td><td class="x"><button data-surm="${i}" aria-label="Remove">×</button></td></tr>`).join("");
-}
-function addSignup(name,disc,division){
-  name=(name||"").trim(); disc=(disc||"").trim(); division=(division||"").trim();
-  if(!name) return false;
-  const match=DIVISIONS.find(d=>d.toLowerCase()===division.toLowerCase()); division=match||division;
-  const k=state.signups.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
-  const rec={name,disc,division,when:new Date().toISOString()};
-  if(k>=0){
-    const old=state.signups[k];
-    if(old.disc===disc && old.division===division) return "same";
-    if(!confirm(`"${old.name}" is already on the list (${old.disc||"no disc"}, ${old.division||"no division"}).\n\nUpdate them to ${disc||"no disc"}, ${division||"no division"}? Cancel if this is a different person — then add them with a last initial.`)) return false;
-    state.signups[k]=rec; return true;
-  }
-  state.signups.push(rec); return true;
-}
-document.getElementById("suAdd").onclick=()=>{
-  const nm=document.getElementById("suName").value.trim(); if(!nm){ alert("Name is required."); return; }
-  const r=addSignup(nm,document.getElementById("suDisc").value,document.getElementById("suDiv").value);
-  if(r==="same"){ alert(`"${nm}" is already on the list. Not added again.`); return; }
-  if(!r) return;
-  document.getElementById("suName").value="";document.getElementById("suDisc").value="";document.getElementById("suDiv").value="";
-  save(); renderSignups(); document.getElementById("suName").focus();
-};
-document.getElementById("suPasteBtn").onclick=()=>{
-  const txt=document.getElementById("suPaste").value; let n=0;
-  let dups=[];
-  txt.split(/\n+/).forEach(l=>{ const m=l.match(/sign-up:\s*(.+)/i); const body=m?m[1]:l; const parts=body.split("|").map(x=>x.trim()); if(parts.length>=2 && /\|/.test(body)){ const r=addSignup(parts[0],parts[1],parts[2]||""); if(r===true) n++; else if(r==="same") dups.push(parts[0]); } });
-  if(!n && !dups.length){ alert("Nothing found. Each line should look like: Name | Disc | Division"); return; }
-  if(dups.length) alert(`Already on the list, skipped: ${dups.join(", ")}`);
-  document.getElementById("suPaste").value=""; save(); renderSignups();
-};
-document.getElementById("suTable").addEventListener("click",e=>{ const i=e.target.dataset.surm; if(i===undefined) return; state.signups.splice(i,1); save(); renderSignups(); });
-document.getElementById("suToCard").onclick=()=>{
-  if(!state.signups.length){ alert("The sign-up list is empty."); return; }
-  let added=0;
-  state.signups.forEach(x=>{ const p=state.players.find(p=>p.name.toLowerCase()===x.name.toLowerCase()); if(p){ p.disc=x.disc||p.disc; p.division=x.division||p.division; } else { state.players.push({name:x.name,disc:x.disc,division:x.division,scores:{}}); added++; } });
-  state.players=state.players.filter(p=>!(p.name.match(/^Player \d+$/) && !Object.keys(p.scores).length) || state.players.length<=1);
-  ensureIds(); save(); build(); alert(`${added} player${added===1?"":"s"} added to the card. Existing names were updated.`); setView("card");
-};
-document.getElementById("suCsv").onclick=()=>{
-  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const lines=[["Name","Disc","Division"].map(q).join(",")].concat(state.signups.map(x=>[x.name,x.disc,x.division].map(q).join(",")));
-  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="one-n-done-signups.csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-};
-document.getElementById("suClear").onclick=()=>{ if(state.signups.length && confirm("Clear the whole sign-up list?")){ state.signups=[]; save(); renderSignups(); } };
+document.getElementById("prev").onclick=()=>{const seq=holeSeq(),pos=seq.indexOf(state.hole); if(pos>0) state.hole=seq[pos-1]; save();renderHole();window.scrollTo(0,0);};
+document.getElementById("next").onclick=()=>{const seq=holeSeq(),pos=seq.indexOf(state.hole); if(pos<35) state.hole=seq[pos+1]; save();renderHole();window.scrollTo(0,0);};
 function setView(v){
-  if((v==="board"||v==="signup") && !isAdmin()) v="card";
+  if(v==="board"||v==="signup") v="card";
   state.view=v; save();
   document.body.classList.toggle("hole",v==="hole");
-  document.body.classList.toggle("board",v==="board");
-  document.body.classList.toggle("signup",v==="signup");
-  if(v==="signup") renderSignups();
-  document.getElementById("vBoard").classList.toggle("on",v==="board");
-  if(v==="board") renderBoard();
   document.getElementById("vHole").classList.toggle("on",v==="hole");
   document.getElementById("vCard").classList.toggle("on",v==="card");
   if(v==="hole") renderHole();
 }
 document.getElementById("vHole").onclick=()=>setView("hole");
 document.getElementById("vCard").onclick=()=>setView("card");
-document.getElementById("vBoard").onclick=()=>setView("board");
-document.getElementById("vSign").onclick=()=>setView("signup");
 
 document.getElementById("backup").onclick=()=>{
   const blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
@@ -685,13 +506,13 @@ document.getElementById("restoreBtn").onclick=()=>document.getElementById("resto
 document.getElementById("restore").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.players) throw 0; if(confirm("Replace the current scorecard with this backup?")){ state=d; store.tournaments[store.current].data=state; ensureIds(); if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined) state.hole=0; save(); build(); renderTournaments(); setView(state.view||"card"); } }
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.players) throw 0; if(confirm("Replace the current scorecard with this backup?")){ state=d; store.tournaments[store.current].data=state; ensureIds(); if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined) state.hole=0; save(); build(); renderTournaments(); renderStart(); setView(state.view||"card"); } }
     catch(err){ alert("That file isn't a scorecard backup."); } e.target.value=""; };
   r.readAsText(f);
 });
 window.addEventListener("beforeunload",e=>{ if(!storageWorks() && state.players.some(p=>Object.keys(p.scores).length)){ e.preventDefault(); e.returnValue=""; } });
 
-load(); build(); renderTournaments(); setAdmin(isAdmin()); setView(state.view||"card");
+load(); build(); renderTournaments(); renderStart(); setView(state.view||"card");
 if(!storageWorks()){ const st=document.getElementById("status"); st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
 </script>
 </body>

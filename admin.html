@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One N Done – Admin</title>
+<style>
+  :root{--green:#1B2A5B;--green-2:#2E4A9E;--red:#B22234;--orange:#F28C28;--orange-dk:#4A2600;--ink:#1A1A1A;--muted:#6B6B6B;--line:#D9D9D9;--paper:#fff;--wash:#F4F6FB;--under:#DDEBFF}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--wash) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2790%27 height=%2790%27%3E%3Ctext x=%278%27 y=%2730%27 font-size=%2716%27 fill=%27%231B2A5B%27 fill-opacity=%270.10%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2752%27 y=%2774%27 font-size=%2711%27 fill=%27%23B22234%27 fill-opacity=%270.12%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:var(--ink);font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px}
+  header{background:var(--green) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:18px 16px 16px}
+  header h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
+  header h1::before,header h1::after{content:"★";color:#FFD866;margin:0 10px;font-size:22px;vertical-align:1px}
+  header h1::before{margin-left:0}
+  header p{margin:6px 0 0;font-size:13px;opacity:.95}
+  .stripes{height:14px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:var(--paper);border-bottom:3px solid var(--green);box-shadow:0 2px 0 var(--red);position:sticky;top:0;z-index:5;align-items:center}
+  button,a.btn{font-family:inherit;font-size:15px;font-weight:600;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;background:var(--red);color:#fff;text-decoration:none;display:inline-block}
+  button.quiet,a.btn.quiet{background:#E4E9F7;color:var(--green)}
+  .seg{display:inline-flex;border-radius:8px;overflow:hidden;background:#E4E9F7}
+  .seg button{border-radius:0;background:transparent;color:var(--green)}
+  .seg button.on{background:var(--green);color:#fff}
+  main{max-width:900px;margin:0 auto;padding:14px 16px 40px}
+  section{display:none} section.on{display:block}
+  #lock{display:none;text-align:center;padding:40px 16px}
+  body.locked #lock{display:block} body.locked main,body.locked .bar{display:none}
+  #lock input{font-size:28px;padding:12px;width:180px;text-align:center;border:3px solid var(--green);border-radius:12px;letter-spacing:6px;font-family:inherit}
+  #lock button{font-size:20px;padding:14px 24px;margin-top:14px}
+  .sum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .sum div{background:var(--paper);border-radius:10px;padding:8px 12px;font-size:14px;border-top:4px solid var(--red)}
+  .sum div:nth-child(even){border-top-color:var(--green)}
+  .sum b{font-size:20px;display:block;color:var(--green)}
+  .grp{background:var(--paper);border-radius:12px;margin-bottom:10px;overflow:hidden;border-left:8px solid var(--green)}
+  .grp.done{border-left-color:#1B4FB5} .grp.play{border-left-color:var(--orange)} .grp.none{border-left-color:#bbb}
+  .grp .gh{display:flex;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap}
+  .grp .gh .hole{font-size:26px;font-weight:900;color:var(--green);min-width:64px}
+  .grp .gh .hole small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+  .grp .gh .nm{font-weight:800;font-size:17px;flex:1}
+  .grp .gh .meta{font-size:13px;color:var(--muted)}
+  .grp table{width:100%;border-collapse:collapse}
+  .grp td{padding:7px 12px;border-top:1px solid var(--line);font-size:15px}
+  .grp td.n{font-weight:700}
+  .grp td.g{color:var(--muted);font-size:13px}
+  .st{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+  .st.done{background:var(--under);color:#1B4FB5} .st.play{background:var(--orange);color:var(--orange-dk)} .st.none{background:#EEE;color:#777}
+  .pm.under{color:#1B4FB5} .pm.over{color:#B85C00}
+  .lb-head{background:var(--green-2);color:#fff;font-weight:700;padding:8px 10px;margin-top:14px;border-radius:8px 8px 0 0;font-size:15px}
+  .lb-head::before{content:"★ ";color:#FFD866}
+  .lb{width:100%;border-collapse:collapse;background:var(--paper)}
+  .lb th{background:var(--green);color:#fff;font-size:13px;font-weight:600;padding:8px 6px;text-align:left}
+  .lb td{padding:9px 6px;border-bottom:1px solid var(--line);font-size:15px}
+  .lb td.r{font-weight:800;width:36px;text-align:center} .lb td.n{font-weight:700} .lb td.g{color:var(--muted);font-size:13px} .lb td.num{text-align:center;font-weight:700}
+  .lb tr.lead td{background:var(--orange);color:var(--orange-dk)} .lb tr.lead td.g,.lb tr.lead td.pm{color:var(--orange-dk)} .lb tr.lead td.r::before{content:"★ "}
+  .warn{background:var(--orange);border:2px solid var(--orange-dk);border-radius:12px;padding:12px 14px;margin:0 0 12px;font-weight:700;color:var(--orange-dk)}
+  .su-form{background:var(--paper);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;border-top:6px solid var(--red)}
+  .su-form input,.su-form select{font-family:inherit;font-size:18px;padding:12px;border:2px solid var(--green);border-radius:10px;width:100%}
+  .su-form .full{grid-column:1/-1} .su-form button{font-size:20px;padding:14px}
+  .su-list{background:var(--paper);border-radius:12px;margin-top:14px;overflow:hidden}
+  .su-list table{width:100%;border-collapse:collapse}
+  .su-list th{background:var(--green);color:#fff;text-align:left;padding:10px;font-size:15px}
+  .su-list td{padding:10px;border-bottom:1px solid var(--line);font-size:17px}
+  .su-list td.n{font-weight:800} .su-list td.x button{padding:4px 10px;font-size:16px;background:#E4E9F7;color:var(--red)}
+  .su-count{font-size:22px;font-weight:900;color:var(--green);margin:14px 0 8px} .su-count::before{content:"★ ";color:var(--red)}
+  .su-paste{margin-top:14px;background:var(--paper);border-radius:12px;padding:14px;border-top:6px solid var(--green)}
+  .su-paste textarea{width:100%;font-family:inherit;font-size:15px;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:90px}
+  .su-paste h3{margin:0 0 6px;font-size:17px;color:var(--green)} .su-paste p{margin:0 0 8px;font-size:14px;color:var(--muted)}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .status{margin-left:auto;font-size:13px;color:var(--muted)}
+  @media (max-width:600px){ .su-form{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body class="locked">
+<header>
+  <h1>One N Done · Admin</h1>
+  <p>Groups by starting hole · who's done · sign-ups · leaderboard</p>
+</header>
+<div class="stripes"></div>
+
+<div id="lock">
+  <p style="font-size:18px;font-weight:700;color:var(--green)">Admin PIN</p>
+  <input id="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
+  <div><button id="unlock">Unlock</button></div>
+  <p style="margin-top:20px"><a class="btn quiet" href="card.html">← Back to scorecard</a></p>
+</div>
+
+<div class="bar">
+  <div class="seg"><button id="tGroups" class="on">Groups</button><button id="tBoard">Leaderboard</button><button id="tSign">★ Sign-ups</button></div>
+  <select id="tsel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit"></select>
+  <button id="addGroups">+ Add groups' results</button>
+  <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
+  <a class="btn quiet" href="card.html">Scorecard</a>
+  <button class="quiet" id="lockBtn">Lock</button>
+  <span class="status" id="status"></span>
+</div>
+
+<main>
+  <section id="groups" class="on">
+    <div class="sum" id="gsum"></div>
+    <div id="glist"></div>
+    <div class="actions"><button class="quiet" id="clearGroups">Remove added groups</button></div>
+    <div class="note">Each group's scorekeeper picks their <b>starting hole</b> on their card and taps <b>Send results to admin</b> (at the turn and at the end). Save the file they send and tap <b>Add groups' results</b> — pick as many files as you like. Re-adding a group replaces its older results. The card on this device shows up automatically.</div>
+  </section>
+
+  <section id="board">
+    <div class="actions">
+      <div class="seg"><button id="lbDiv" class="on">By division</button><button id="lbAll">Everyone</button></div>
+      <button class="quiet" id="csvBoard">Download spreadsheet</button>
+      <button class="quiet" id="copyBoard">Copy leaderboard</button>
+    </div>
+    <div class="sum" id="lbsum"></div>
+    <div id="lbtable"></div>
+  </section>
+
+  <section id="signup">
+    <div class="su-form">
+      <input id="suName" class="full" placeholder="Player name">
+      <input id="suDisc" placeholder="Disc">
+      <select id="suDiv"><option value="">Division…</option></select>
+      <select id="suHole"><option value="">Starting hole…</option></select>
+      <button id="suAdd" class="full">＋ Add to sign-up list</button>
+    </div>
+    <div class="su-paste">
+      <h3>Paste sign-ups from texts</h3>
+      <p>Lines like "One N Done sign-up: Name | Disc | Division". Paste any number.</p>
+      <textarea id="suPaste" placeholder="Paste here…"></textarea>
+      <button class="quiet" id="suPasteBtn" style="margin-top:8px">Add pasted sign-ups</button>
+    </div>
+    <div class="su-count" id="suCount"></div>
+    <div class="su-list"><table id="suTable"></table></div>
+    <div class="actions">
+      <button class="quiet" id="suCsv">Download sign-up list</button>
+      <button class="quiet" id="suClear">Clear list</button>
+    </div>
+    <div class="note">Sign-ups are a check-in list. Assign a starting hole here if you want; players still get put on the actual card by their group's scorekeeper (or by you on this device's card).</div>
+  </section>
+</main>
+
+<script>
+const HOLES = [
+ ["1","Blue",3],["2a","Blue",2],["2b","Orange flag",2],
+ ["4","Blue",3],["5","Blue (low)",3],["6","Blue",3],["7","Blue",3],["8","Blue",3],
+ ["9","Blue",3],["10","Blue",3],["11","Blue",3],
+ ["12a","Blue",2],["12b","Orange flag",2],["12c","Orange flag",2],
+ ["13","Blue",3],["14","Blue",3],["15","Blue",3],["16","Blue",3],["17","Blue",3],["18","Blue",3],
+ ["19a","Blue",2],["19b","Orange flag",2],
+ ["20a","Blue",3],["20b","Orange flag",2],
+ ["21a","Blue",3],["21b","Orange flag",2],
+ ["22a","Blue",3],["22b","Orange flag",2],
+ ["23a","Blue",3],["23b","Orange flag",2],
+ ["24","Blue",3],["25","Blue",3],
+ ["26","Red",2],["26","Blue",3],
+ ["27","Red",2],["27","Blue",3],
+];
+const DIVISIONS=["Kids","Beginners","Amateur","Advanced","Women","Pro","Masters","Grandmaster"];
+const STORE="discgolf-tournaments-v1";
+const ADMIN_PIN="2727";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+const fmtPM=d=>d===0?"E":d>0?"+"+d:String(d);
+const divOrder=(a,b)=>{const o=d=>d==="No division"?999:DIVISIONS.indexOf(d)<0?99:DIVISIONS.indexOf(d); return o(a)-o(b)||a.localeCompare(b);};
+
+let store={current:null,tournaments:{}}, state=null;
+function load(){ try{ const raw=localStorage.getItem(STORE); if(raw) store=JSON.parse(raw); }catch(e){}
+  if(!store.current||!store.tournaments[store.current]){ const id="t"+Date.now().toString(36); store.tournaments[id]={id,name:"Practice round",created:new Date().toISOString(),data:{players:[],groups:[],signups:[]}}; store.current=id; }
+  state=store.tournaments[store.current].data; if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.players) state.players=[];
+}
+function save(){ try{ store.tournaments[store.current].data=state; localStorage.setItem(STORE,JSON.stringify(store)); $("status").textContent="Saved "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}); }catch(e){ $("status").textContent="Not saving on this device"; } }
+function renderT(){ const list=Object.values(store.tournaments).sort((a,b)=>b.created.localeCompare(a.created)); $("tsel").innerHTML=list.map(t=>`<option value="${t.id}" ${t.id===store.current?"selected":""}>${esc(t.name)}</option>`).join(""); }
+$("tsel").onchange=e=>{ store.current=e.target.value; save(); load(); renderAll(); };
+
+// ---- admin lock ----
+function isAdmin(){ try{ return sessionStorage.getItem("dg-admin")==="1"; }catch(e){ return false; } }
+function setAdmin(on){ try{ on?sessionStorage.setItem("dg-admin","1"):sessionStorage.removeItem("dg-admin"); }catch(e){} document.body.classList.toggle("locked",!on); if(on) renderAll(); }
+$("unlock").onclick=()=>{ if($("pin").value===ADMIN_PIN){ $("pin").value=""; setAdmin(true); } else { alert("Wrong PIN."); $("pin").value=""; } };
+$("pin").addEventListener("keydown",e=>{ if(e.key==="Enter") $("unlock").click(); });
+$("lockBtn").onclick=()=>setAdmin(false);
+
+// ---- tabs ----
+const tabs={tGroups:"groups",tBoard:"board",tSign:"signup"};
+Object.keys(tabs).forEach(k=>$(k).onclick=()=>{ Object.entries(tabs).forEach(([b,s])=>{ $(b).classList.toggle("on",b===k); $(s).classList.toggle("on",b===k); }); renderAll(); });
+
+// ---- data model ----
+function playerLine(p,group,startHole){
+  let sc=0,par=0,thru=0,front=0,back=0;
+  HOLES.forEach((h,idx)=>{const v=parseInt(p.scores?.[idx]); if(!isNaN(v)){sc+=v;par+=h[2];thru++; if(idx<18) front+=v; else back+=v;}});
+  return {name:p.name,disc:(p.disc||"").trim(),group,startHole,division:(p.division||"").trim()||"No division",sc,par,thru,front,back,diff:sc-par,status:thru===36?"done":thru>0?"play":"none",scores:p.scores||{}};
+}
+function allGroups(){
+  const g=[];
+  if(state.players.length) g.push({label:state.event||"This device's card",startHole:state.startHole,players:state.players,when:null,mine:true});
+  state.groups.forEach(x=>g.push({label:x.label,startHole:x.startHole,players:x.players,when:x.when,cardId:x.cardId}));
+  return g.sort((a,b)=>(a.startHole??99)-(b.startHole??99)||a.label.localeCompare(b.label));
+}
+function boardRows(){ const rows=[]; allGroups().forEach(g=>g.players.forEach(p=>rows.push(playerLine(p,g.label,g.startHole)))); return rows; }
+function rankRows(rows){
+  const played=rows.filter(r=>r.thru>0), none=rows.filter(r=>r.thru===0);
+  played.sort((a,b)=>a.diff-b.diff||b.thru-a.thru||a.sc-b.sc);
+  let rank=0,prev=null; played.forEach((r,i)=>{ if(prev===null||r.diff!==prev) rank=i+1; r.rank=rank; prev=r.diff; });
+  return played.concat(none);
+}
+const pill=r=>r.status==="done"?`<span class="st done">Finished</span>`:r.status==="play"?`<span class="st play">Thru ${r.thru}</span>`:`<span class="st none">Not started</span>`;
+function dups(rows){ const c={}; rows.forEach(r=>{const k=r.name.trim().toLowerCase(); c[k]=(c[k]||new Set()).add(r.group);}); return new Set(Object.keys(c).filter(k=>c[k].size>1)); }
+
+// ---- groups view ----
+function renderGroups(){
+  const groups=allGroups(); const rows=boardRows(); const d=dups(rows);
+  const gDone=groups.filter(g=>g.players.length && g.players.every(p=>Object.keys(p.scores||{}).length===36)).length;
+  const gPlay=groups.filter(g=>g.players.some(p=>Object.keys(p.scores||{}).length>0) && !g.players.every(p=>Object.keys(p.scores||{}).length===36)).length;
+  $("gsum").innerHTML=`<div><b>${groups.length}</b>groups</div><div><b>${gDone}</b>groups finished</div><div><b>${gPlay}</b>still playing</div><div><b>${groups.length-gDone-gPlay}</b>not started</div><div><b>${rows.length}</b>players</div>`;
+  if(!groups.length){ $("glist").innerHTML=`<div class="grp none"><div class="gh"><div class="nm">No groups yet</div><div class="meta">Add players on the scorecard, or tap "Add groups' results".</div></div></div>`; return; }
+  $("glist").innerHTML=(d.size?`<div class="warn">⚠ ${d.size} name${d.size>1?"s":""} appear in more than one group — check for doubles</div>`:"")+groups.map(g=>{
+    const lines=g.players.map(p=>playerLine(p,g.label,g.startHole));
+    const allDone=lines.length&&lines.every(l=>l.status==="done"), any=lines.some(l=>l.thru>0);
+    const cls=allDone?"done":any?"play":"none";
+    const when=g.when?new Date(g.when).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):(g.mine?"this device":"");
+    return `<div class="grp ${cls}"><div class="gh">
+      <div class="hole">${g.startHole!==undefined&&g.startHole!==null?g.startHole+1:"?"}<small>start hole${g.startHole!==undefined&&g.startHole!==null?" · basket "+HOLES[g.startHole][0]:""}</small></div>
+      <div class="nm">${esc(g.label)}</div>
+      <div class="meta">${lines.length} player${lines.length===1?"":"s"}${when?" · sent "+when:""}</div>
+      <div>${allDone?'<span class="st done">Finished</span>':any?'<span class="st play">Playing</span>':'<span class="st none">Not started</span>'}</div>
+    </div><table>${lines.map(l=>`<tr><td class="n">${esc(l.name)}${d.has(l.name.trim().toLowerCase())?' <span class="st play">⚠ 2+ groups</span>':""}</td><td class="g">${esc(l.disc)||"—"}</td><td class="g">${esc(l.division)}</td><td>${pill(l)}</td><td class="num">${l.thru?l.sc+" ("+fmtPM(l.diff)+")":""}</td></tr>`).join("")}</table></div>`;
+  }).join("");
+}
+
+// ---- leaderboard ----
+let lbMode="div";
+function lbTable(rows,showDiv){
+  const d=dups(boardRows());
+  return `<table class="lb"><tr><th>#</th><th>Player</th><th>Disc</th>${showDiv?"<th>Division</th>":""}<th>Group</th><th>Status</th><th style="text-align:center">Score</th><th style="text-align:center">+/−</th></tr>`+
+    rows.map(r=>`<tr class="${r.rank===1?"lead":""}"><td class="r">${r.rank??""}</td><td class="n">${esc(r.name)}${d.has(r.name.trim().toLowerCase())?' <span class="st play">⚠</span>':""}</td><td class="g">${esc(r.disc)||"—"}</td>${showDiv?`<td class="g">${esc(r.division)}</td>`:""}<td class="g">${esc(r.group)}</td><td>${pill(r)}</td><td class="num">${r.thru?r.sc:""}</td><td class="num pm ${r.thru?(r.diff<0?"under":r.diff>0?"over":""):""}">${r.thru?fmtPM(r.diff):""}</td></tr>`).join("")+`</table>`;
+}
+function renderBoard(){
+  const rows=boardRows(); let html="";
+  if(lbMode==="all") html=lbTable(rankRows(rows),true);
+  else { const divs=[...new Set(rows.map(r=>r.division))].sort(divOrder); html=divs.map(dv=>`<div class="lb-head">${esc(dv)}</div>`+lbTable(rankRows(rows.filter(r=>r.division===dv)),false)).join(""); }
+  if(!rows.length) html=`<div class="note">No players yet.</div>`;
+  $("lbtable").innerHTML=html;
+  const done=rows.filter(r=>r.status==="done").length, play=rows.filter(r=>r.status==="play").length;
+  $("lbsum").innerHTML=`<div><b>${rows.length}</b>players</div><div><b>${done}</b>finished</div><div><b>${play}</b>still playing</div><div><b>${rows.length-done-play}</b>not started</div>`;
+  $("lbDiv").classList.toggle("on",lbMode!=="all"); $("lbAll").classList.toggle("on",lbMode==="all");
+}
+$("lbDiv").onclick=()=>{lbMode="div";renderBoard();}; $("lbAll").onclick=()=>{lbMode="all";renderBoard();};
+$("csvBoard").onclick=()=>{
+  const rows=boardRows(); const divs=[...new Set(rows.map(r=>r.division))].sort(divOrder);
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const head=["Division","Rank in division","Player","Disc","Group","Start hole","Status","Holes played","Front 18","Back 18","Total","+/- par"].concat(HOLES.map((h,i)=>`H${i+1} (B${h[0]} ${h[1]} P${h[2]})`));
+  const lines=[head.map(q).join(",")];
+  divs.forEach(dv=>rankRows(rows.filter(r=>r.division===dv)).forEach(r=>{
+    const st=r.status==="done"?"Finished":r.status==="play"?"Thru "+r.thru:"Not started";
+    lines.push([r.division,r.rank??"",r.name,r.disc,r.group,r.startHole!=null?r.startHole+1:"",st,r.thru,r.thru?r.front:"",r.thru?r.back:"",r.thru?r.sc:"",r.thru?fmtPM(r.diff):""].concat(HOLES.map((h,i)=>r.scores[i]??"")).map(q).join(","));
+  }));
+  dl("one-n-done-leaderboard-"+new Date().toISOString().slice(0,10)+".csv","\ufeff"+lines.join("\r\n"),"text/csv;charset=utf-8");
+};
+$("copyBoard").onclick=async()=>{
+  const rows=boardRows(); const line=r=>`${r.rank??"-"}. ${r.name}${r.disc?" ["+r.disc+"]":""} (${r.group}) — ${r.thru?r.sc+" ("+fmtPM(r.diff)+"), "+(r.status==="done"?"finished":"thru "+r.thru):"not started"}`;
+  let txt="One N Done — Leaderboard\n";
+  if(lbMode==="all") txt+=rankRows(rows).map(line).join("\n");
+  else { const divs=[...new Set(rows.map(r=>r.division))].sort(divOrder); txt+=divs.map(dv=>"\n"+dv+"\n"+rankRows(rows.filter(r=>r.division===dv)).map(line).join("\n")).join("\n"); }
+  try{ await navigator.clipboard.writeText(txt); const b=$("copyBoard"); b.textContent="Copied"; setTimeout(()=>b.textContent="Copy leaderboard",1500); }catch(e){ prompt("Copy this:",txt); }
+};
+function dl(name,content,type){ const blob=new Blob([content],{type}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+
+// ---- import ----
+$("addGroups").onclick=()=>$("groupFiles").click();
+$("groupFiles").addEventListener("change",e=>{
+  const files=[...e.target.files]; let done=0, n=0;
+  files.forEach(f=>{ const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.players){
+      const label=d.event||(d.startHole!=null?"Start hole "+(d.startHole+1):f.name.replace(/\.json$/i,""));
+      const g={label,players:d.players,startHole:d.startHole,when:d.sentAt||new Date().toISOString(),cardId:d.cardId||null};
+      const k=state.groups.findIndex(x=>(g.cardId&&x.cardId===g.cardId)||x.label===label); if(k>=0) state.groups[k]=g; else state.groups.push(g); n++; } }catch(err){}
+    if(++done===files.length){ save(); renderAll(); if(!n) alert("None of those were results files."); } }; r.readAsText(f); });
+  e.target.value="";
+});
+$("clearGroups").onclick=()=>{ if(state.groups.length&&confirm("Remove all added groups? This device's own card is not affected.")){ state.groups=[]; save(); renderAll(); } };
+
+// ---- sign-ups ----
+function renderSignups(){
+  if($("suDiv").options.length<=1) $("suDiv").innerHTML=`<option value="">Division…</option>`+DIVISIONS.map(d=>`<option>${d}</option>`).join("");
+  if($("suHole").options.length<=1) $("suHole").innerHTML=`<option value="">Starting hole…</option>`+HOLES.map((h,i)=>`<option value="${i}">Hole ${i+1} (basket ${h[0]})</option>`).join("");
+  const list=state.signups; const byDiv={}; list.forEach(x=>{byDiv[x.division||"No division"]=(byDiv[x.division||"No division"]||0)+1;});
+  $("suCount").textContent=`${list.length} signed up`+(list.length?" — "+Object.entries(byDiv).sort((a,b)=>divOrder(a[0],b[0])).map(([d,c])=>`${d} ${c}`).join(", "):"");
+  $("suTable").innerHTML=`<tr><th>#</th><th>Name</th><th>Disc</th><th>Division</th><th>Start</th><th></th></tr>`+list.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${esc(x.name)}</td><td>${esc(x.disc)}</td><td>${esc(x.division)}</td><td>${x.startHole!=null?"Hole "+(x.startHole+1):"—"}</td><td class="x"><button data-rm="${i}">×</button></td></tr>`).join("");
+}
+function addSignup(name,disc,division,startHole){
+  name=(name||"").trim(); disc=(disc||"").trim(); division=(division||"").trim(); if(!name) return false;
+  const m=DIVISIONS.find(d=>d.toLowerCase()===division.toLowerCase()); division=m||division;
+  const k=state.signups.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+  const rec={name,disc,division,startHole:startHole===""||startHole==null?undefined:+startHole,when:new Date().toISOString()};
+  if(k>=0){ const old=state.signups[k]; if(old.disc===disc&&old.division===division&&old.startHole===rec.startHole) return "same";
+    if(!confirm(`"${old.name}" is already on the list (${old.disc||"no disc"}, ${old.division||"no division"}). Update them? Cancel if this is a different person — add a last initial.`)) return false;
+    state.signups[k]=rec; return true; }
+  state.signups.push(rec); return true;
+}
+$("suAdd").onclick=()=>{ const nm=$("suName").value.trim(); if(!nm){alert("Name is required.");return;}
+  const r=addSignup(nm,$("suDisc").value,$("suDiv").value,$("suHole").value); if(r==="same"){alert(`"${nm}" is already on the list.`);return;} if(!r) return;
+  $("suName").value="";$("suDisc").value="";$("suDiv").value="";$("suHole").value=""; save(); renderSignups(); $("suName").focus(); };
+$("suPasteBtn").onclick=()=>{ let n=0,d=[]; $("suPaste").value.split(/\n+/).forEach(l=>{ const m=l.match(/sign-up:\s*(.+)/i); const body=m?m[1]:l; if(!/\|/.test(body)) return; const p=body.split("|").map(x=>x.trim()); const r=addSignup(p[0],p[1],p[2]||""); if(r===true)n++; else if(r==="same") d.push(p[0]); });
+  if(!n&&!d.length){alert("Nothing found. Lines should look like: Name | Disc | Division");return;} if(d.length) alert("Already on the list, skipped: "+d.join(", ")); $("suPaste").value=""; save(); renderSignups(); };
+$("suTable").addEventListener("click",e=>{ const i=e.target.dataset.rm; if(i===undefined) return; state.signups.splice(i,1); save(); renderSignups(); });
+$("suCsv").onclick=()=>{ const q=v=>`"${String(v??"").replace(/"/g,'""')}"`; dl("one-n-done-signups.csv","\ufeff"+[["Name","Disc","Division","Start hole"].map(q).join(",")].concat(state.signups.map(x=>[x.name,x.disc,x.division,x.startHole!=null?x.startHole+1:""].map(q).join(","))).join("\r\n"),"text/csv;charset=utf-8"); };
+$("suClear").onclick=()=>{ if(state.signups.length&&confirm("Clear the whole sign-up list?")){ state.signups=[]; save(); renderSignups(); } };
+
+function renderAll(){ renderT(); renderGroups(); renderBoard(); renderSignups(); }
+load(); renderT(); setAdmin(isAdmin());
+</script>
+</body>
+</html>
