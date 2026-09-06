@@ -2,4 +2,5 @@
   publish = "."
   command = ""
 [functions]
+  directory = "."
   node_bundler = "esbuild"
