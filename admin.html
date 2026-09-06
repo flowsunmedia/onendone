@@ -327,7 +327,8 @@ function openAddPlayer(gKey){
 }
 $("newGroup").onclick=()=>{
   const used=new Set(groups().map(g=>g.startHole).filter(x=>x!=null)); const free=HOLES.findIndex((_,i)=>!used.has(i)); const su=unassigned();
-  sheet(`<h2>New group</h2><div class="lab">Starting hole</div><select id="nHole">${holeOpts(free>=0?free:undefined)}</select><div class="lab">Group name (optional)</div><input id="nName" placeholder="e.g. Start hole 7">
+  const taken=used;
+  sheet(`<h2>New group</h2><div class="lab">Starting hole</div><select id="nHole"><option value="">Starting hole…</option>${HOLES.map((h,i)=>`<option value="${i}" ${taken.has(i)?"disabled":""} ${i===free?"selected":""}>Hole ${i+1} · basket ${h[0]}${taken.has(i)?" — taken":""}</option>`).join("")}</select><div class="lab">Group name (optional)</div><input id="nName" placeholder="e.g. Start hole 7">
     ${su.length?`<div class="lab">Players (from sign-ups)</div>${suChecks(su)}`:`<div class="note">No unassigned sign-ups. You can add players to the group afterwards.</div>`}
     <div class="row"><button class="big" id="nSave">Create group</button></div><div class="row"><button class="quiet" id="nCancel">Cancel</button></div>`);
   $("nCancel").onclick=closeSheet;
@@ -337,8 +338,8 @@ $("newGroup").onclick=()=>{
     const picks=[...document.querySelectorAll('[data-su]:checked')].map(cb=>su[+cb.dataset.su]);
     const name=($("nName").value||"").trim()||`Start hole ${sh+1}`;
     closeSheet();
-    (async()=>{ try{ const r=await apiPost({action:"createGroup",startHole:sh,name,playerIds:picks.map(p=>p.serverId).filter(Boolean)}); await syncServer(true); }
-      catch(e){ alert("Couldn't reach the site — group not created. Check signal and try again."); } })();
+    (async()=>{ try{ for(const p of picks){ await ensureServerPlayer(p); } const r=await apiPost({action:"createGroup",startHole:sh,name,playerIds:picks.map(p=>p.serverId).filter(Boolean)}); await syncServer(true); }
+      catch(e){ alert(e&&e.error==="hole taken"?"That hole already has a group. Pick a different hole or add players to the existing group.":"Couldn't reach the site — group not created. Check signal and try again."); } })();
   };
 };
 
@@ -396,8 +397,9 @@ function renderSignups(){
 $("suList").addEventListener("click",e=>{ const m=e.target.closest(".m[data-su]"); if(!m) return; const i=+m.dataset.su, s=state.signups[i];
   sheet(`<h2>Edit sign-up</h2><div class="lab">Name</div><input id="sName" value="${esc(s.name)}"><div class="lab">Disc</div><input id="sDisc" value="${esc(s.disc)}"><div class="lab">Division</div><select id="sDiv">${divOpts(s.division)}</select>
     <div class="row"><button class="big" id="sSave">Save</button></div><div class="row"><button class="quiet" id="sCancel">Cancel</button><button class="danger" id="sDel">Remove</button></div>`);
-  $("sCancel").onclick=closeSheet; $("sSave").onclick=()=>{ s.name=$("sName").value.trim()||s.name; s.disc=$("sDisc").value.trim(); s.division=$("sDiv").value; save(); closeSheet(); renderAll(); };
-  $("sDel").onclick=()=>{ if(confirm("Remove "+s.name+" from sign-ups?")){ state.signups.splice(i,1); save(); closeSheet(); renderAll(); } };
+  $("sCancel").onclick=closeSheet;
+  $("sDel").onclick=()=>{ if(confirm("Remove "+s.name+" from sign-ups?")){ const sid=s.serverId; state.signups.splice(i,1); save(); closeSheet(); renderAll(); if(sid) apiPost({action:"remove",playerId:sid}).then(()=>syncServer(true)).catch(()=>{}); } };
+  $("sSave").onclick=()=>{ s.name=$("sName").value.trim()||s.name; s.disc=$("sDisc").value.trim(); s.division=$("sDiv").value; save(); closeSheet(); renderAll(); if(s.serverId) apiPost({action:"update",playerId:s.serverId,name:s.name,disc:s.disc,division:s.division}).catch(()=>{}); };
 });
 function addSignup(name,disc,division){
   name=(name||"").trim(); disc=(disc||"").trim(); division=(division||"").trim(); if(!name) return false;
@@ -408,7 +410,9 @@ function addSignup(name,disc,division){
     state.signups[k]={...o,disc,division}; return true; }
   state.signups.push({name,disc,division,when:new Date().toISOString()}); return true;
 }
-$("suAdd").onclick=()=>{ const nm=$("suName").value.trim(); if(!nm){alert("Name is required.");return;} const r=addSignup(nm,$("suDisc").value,$("suDiv").value); if(r==="same"){alert(`"${nm}" is already on the list.`);return;} if(!r) return; $("suName").value="";$("suDisc").value="";$("suDiv").value=""; save(); renderAll(); $("suName").focus(); };
+$("suAdd").onclick=async()=>{ const nm=$("suName").value.trim(); if(!nm){alert("Name is required.");return;} const r=addSignup(nm,$("suDisc").value,$("suDiv").value); if(r==="same"){alert(`"${nm}" is already on the list.`);return;} if(!r) return;
+  const rec=state.signups.find(x=>x.name.toLowerCase()===nm.toLowerCase()); $("suName").value="";$("suDisc").value="";$("suDiv").value=""; save(); renderAll(); $("suName").focus();
+  if(rec) await ensureServerPlayer(rec); save(); renderAll(); };
 $("suPasteBtn").onclick=()=>{ let n=0,d=[]; $("suPaste").value.split(/\n+/).forEach(l=>{ const m=l.match(/sign-up:\s*(.+)/i); const b=m?m[1]:l; if(!/\|/.test(b)) return; const p=b.split("|").map(x=>x.trim()); const r=addSignup(p[0],p[1],p[2]||""); if(r===true)n++; else if(r==="same")d.push(p[0]); });
   if(!n&&!d.length){alert("Nothing found. Lines should look like: Name | Disc | Division");return;} if(d.length) alert("Already signed up, skipped: "+d.join(", ")); $("suPaste").value=""; save(); renderAll(); };
 $("suCsv").onclick=()=>{ const q=v=>`"${String(v??"").replace(/"/g,'""')}"`; dl("one-n-done-signups.csv","\ufeff"+[["Name","Disc","Division"].map(q).join(",")].concat(state.signups.map(x=>[x.name,x.disc,x.division].map(q).join(","))).join("\r\n"),"text/csv;charset=utf-8"); };
@@ -419,7 +423,9 @@ async function apiPost(body){ const r=await fetch("/api?event="+encodeURICompone
 async function syncServer(quiet){
   let d; try{ const r=await fetch("/api?event="+encodeURIComponent(EVENT)); d=await r.json(); }catch(e){ if(!quiet) alert("Couldn't reach the sign-up server."); return; }
   // sign-ups
-  d.players.forEach(p=>{ const k=state.signups.findIndex(x=>x.serverId===p.id||x.name.toLowerCase()===p.name.toLowerCase()); const rec={name:p.name,disc:p.disc,division:p.division,serverId:p.id,when:new Date(p.createdAt).toISOString()}; if(k>=0) state.signups[k]={...state.signups[k],...rec}; else state.signups.push(rec); });
+  const ids=new Set(d.players.map(p=>p.id));
+  state.signups=state.signups.filter(x=>!x.serverId||ids.has(x.serverId));
+  d.players.forEach(p=>{ const k=state.signups.findIndex(x=>x.serverId===p.id||(!x.serverId&&x.name.toLowerCase()===p.name.toLowerCase())); const rec={name:p.name,disc:p.disc,division:p.division,serverId:p.id,when:new Date(p.createdAt).toISOString()}; if(k>=0) state.signups[k]={...state.signups[k],...rec}; else state.signups.push(rec); });
   // server groups are the truth for planning; result files (scores) attach by starting hole
   state.planned=state.planned.filter(g=>!g.serverId);
   const fileHoles=new Set(state.groups.map(g=>state.startOv[g.cardId||("l:"+g.label)]??g.startHole).filter(x=>x!=null));
@@ -437,7 +443,7 @@ async function pushGroup(pl){ // send a planned server group's hole/name/members
   const ids=pl.players.map(p=>p.serverId).filter(Boolean);
   try{ await apiPost({action:"setMembers",groupId:pl.serverId,playerIds:ids,name:pl.label,startHole:pl.startHole}); }catch(e){ alert("Saved on this phone, but the site didn't update. Tap Sync and try again."); }
 }
-async function ensureServerPlayer(p){ // walk-up: create on server so cards can load them
+async function ensureServerPlayer(p){ // make sure this person exists on the site so cards can load them
   if(p.serverId) return p.serverId;
   try{ const r=await apiPost({action:"addPlayer",name:p.name,disc:p.disc,division:p.division}); p.serverId=r.player.id; return p.serverId; }catch(e){ return null; }
 }
