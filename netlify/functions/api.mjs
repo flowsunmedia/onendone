@@ -8,9 +8,9 @@ const id = () => Math.random().toString(36).slice(2, 10);
 
 async function read(store, ev) {
   const d = (await store.get("event:" + ev, { type: "json" })) || {};
-  d.players ||= [];   // {id,name,disc,division,groupId,createdAt}
-  d.groups ||= [];    // {id,startHole,name,createdAt}
-  d.status ||= "live"; // signup | live  (starts open for testing; admin can "Reopen sign-ups" to lock cards before the real round)
+  d.players ||= [];
+  d.groups ||= [];
+  d.status ||= "live";
   d.updatedAt ||= 0;
   return d;
 }
@@ -37,7 +37,7 @@ export default async (req) => {
     const p = { id: id(), name, disc, division, groupId: null, createdAt: Date.now() };
     d.players.push(p); await write(store, ev, d); return json({ ok: true, player: p, data: d });
   }
-  if (act === "update") {  // player edits own sign-up (name/disc/division only); admin edits anyone
+  if (act === "update") {
     const p = d.players.find(x => x.id === body.playerId); if (!p) return json({ error: "no player" }, 404);
     if (body.name !== undefined) { const n = clean(body.name, 40); if (n && !d.players.some(x => x.id !== p.id && x.name.toLowerCase() === n.toLowerCase())) p.name = n; }
     if (body.disc !== undefined) p.disc = clean(body.disc, 40);
@@ -53,6 +53,7 @@ export default async (req) => {
     const sh = Number(body.startHole);
     if (!(sh >= 0 && sh < HOLES)) return json({ error: "bad hole" }, 400);
     let g = d.groups.find(x => x.startHole === sh);
+    if (g && !body.force) return json({ error: "hole taken", group: g }, 409);
     if (!g) { g = { id: id(), startHole: sh, name: clean(body.name, 40) || ("Start hole " + (sh + 1)), createdAt: Date.now() }; d.groups.push(g); }
     if (body.name) g.name = clean(body.name, 40);
     if (Array.isArray(body.playerIds)) { d.players.forEach(p => { if (p.groupId === g.id) p.groupId = null; }); body.playerIds.forEach(pid => { const p = d.players.find(x => x.id === pid); if (p) p.groupId = g.id; }); }
@@ -68,7 +69,7 @@ export default async (req) => {
     if (body.startHole !== undefined) { const sh = Number(body.startHole); if (sh >= 0 && sh < HOLES) g.startHole = sh; }
     await write(store, ev, d); return json({ ok: true, data: d });
   }
-  if (act === "addPlayer") {  // admin adds a walk-up who never signed up
+  if (act === "addPlayer") {
     if (!adminOk) return json({ error: "admin only" }, 403);
     const name = clean(body.name, 40); if (!name) return json({ error: "Name required" }, 400);
     let p = d.players.find(x => x.name.toLowerCase() === name.toLowerCase());
