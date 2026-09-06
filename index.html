@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One N Done – Sign up</title>
+<style>
+  :root{--navy:#1B2A5B;--red:#B22234;--gold:#FFD866;--orange:#F28C28;--wash:#F4F6FB}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--wash) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2790%27 height=%2790%27%3E%3Ctext x=%278%27 y=%2730%27 font-size=%2716%27 fill=%27%231B2A5B%27 fill-opacity=%270.10%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2752%27 y=%2774%27 font-size=%2711%27 fill=%27%23B22234%27 fill-opacity=%270.12%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#1A1A1A}
+  header{background:var(--navy) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:22px 16px;text-align:center}
+  header h1{margin:0;font-size:30px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
+  header h1::before,header h1::after{content:"★";color:var(--gold);margin:0 10px;font-size:24px;vertical-align:2px}
+  header p{margin:6px 0 0;font-size:16px;opacity:.95}
+  .stripes{height:14px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
+  main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+  label{display:block;font-size:20px;font-weight:800;color:var(--navy);margin:18px 0 8px}
+  label span{color:var(--red)}
+  input,select{width:100%;font-family:inherit;font-size:22px;padding:14px;border:3px solid var(--navy);border-radius:12px;background:#fff}
+  input:focus,select:focus{outline:4px solid var(--orange);outline-offset:2px}
+  button{width:100%;margin-top:26px;font-family:inherit;font-size:24px;font-weight:900;padding:18px;border:0;border-radius:14px;background:var(--red);color:#fff;cursor:pointer;letter-spacing:.5px}
+  button.quiet{background:#E4E9F7;color:var(--navy);font-size:18px;padding:14px;margin-top:12px}
+  .err{color:var(--red);font-weight:700;font-size:16px;margin-top:8px;display:none}
+  #done{display:none;background:#fff;border:3px solid var(--navy);border-radius:14px;padding:18px;margin-top:20px;text-align:center}
+  #done h2{margin:0 0 6px;font-size:26px;color:var(--navy)}
+  #done .card{font-size:20px;font-weight:700;margin:10px 0;color:#333}
+  #done p{font-size:17px;line-height:1.5;margin:8px 0}
+  .step{background:var(--orange);color:#4A2600;font-weight:800;font-size:18px;padding:12px;border-radius:10px;margin-top:10px}
+</style>
+</head>
+<body>
+<header><h1>One N Done</h1><p>Player sign-up · one disc, one round</p></header>
+<div class="stripes"></div>
+<main>
+  <div id="form">
+    <label>Your name <span>*</span></label>
+    <input id="name" type="text" autocomplete="name" placeholder="First and last name">
+    <label>The one disc you're throwing <span>*</span></label>
+    <input id="disc" type="text" placeholder="e.g. Innova Destroyer">
+    <label>Your division <span>*</span></label>
+    <select id="div">
+      <option value="">Pick one…</option>
+      <option>Kids</option><option>Beginners</option><option>Amateur</option><option>Advanced</option>
+      <option>Women</option><option>Pro</option><option>Masters</option><option>Grandmaster</option>
+    </select>
+    <div class="err" id="err">Please fill in all three.</div>
+    <button id="go">Sign me up ★</button>
+  </div>
+  <div id="done">
+    <h2>★ You're signed up ★</h2>
+    <div class="card" id="summary"></div>
+    <div class="step">Last step: send this to the tournament admin</div>
+    <p>Tap the button below and pick a text or email to the admin. That's what gets you on the list.</p>
+    <button id="share">Send my sign-up</button>
+    <button class="quiet" id="copy">Copy it instead</button>
+    <button class="quiet" id="again">Sign up another player</button>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let line="";
+$("go").onclick=()=>{
+  const n=$("name").value.trim(), d=$("disc").value.trim(), v=$("div").value;
+  if(!n||!d||!v){ $("err").style.display="block"; return; }
+  $("err").style.display="none";
+  let sent=[]; try{ sent=JSON.parse(localStorage.getItem("ond-sent")||"[]"); }catch(e){}
+  if(sent.some(x=>x.toLowerCase()===n.toLowerCase())){ $("err").textContent=`"${n}" already signed up from this phone. You're on the list — no need to do it again.`; $("err").style.display="block"; return; }
+  if(sent.length>=6){ $("err").textContent="This phone has already signed up 6 players. Please see the admin to add more."; $("err").style.display="block"; return; }
+  if(sent.length>=1 && !confirm(`This phone already signed up ${sent.join(", ")}.\n\nOnly continue if "${n}" is a different player.`)) return;
+  sent.push(n); try{ localStorage.setItem("ond-sent",JSON.stringify(sent)); }catch(e){}
+  line=`One N Done sign-up: ${n} | ${d} | ${v}`;
+  $("summary").textContent=`${n} · ${d} · ${v}`;
+  $("form").style.display="none"; $("done").style.display="block"; window.scrollTo(0,0);
+  try{ localStorage.setItem("ond-signup",JSON.stringify({n,d,v})); }catch(e){}
+};
+$("share").onclick=async()=>{
+  if(navigator.share){ try{ await navigator.share({title:"One N Done sign-up",text:line}); return; }catch(e){ if(e.name==="AbortError") return; } }
+  $("copy").click();
+};
+$("copy").onclick=async()=>{
+  const ok=()=>{ $("copy").textContent="Copied! Now paste it in a text to the admin"; };
+  try{ await navigator.clipboard.writeText(line); ok(); }catch(e){ prompt("Copy this and text it to the admin:",line); }
+};
+$("again").onclick=()=>{ $("err").textContent="Please fill in all three."; $("err").style.display="none"; $("name").value="";$("disc").value="";$("div").value=""; $("done").style.display="none"; $("form").style.display="block"; $("copy").textContent="Copy it instead"; };
+
+</script>
+</body>
+</html>
