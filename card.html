@@ -175,24 +175,22 @@
   <div class="meta">
     <label>Tournament <span style="display:flex;gap:6px"><select id="tsel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:150px"></select><button id="tnew" style="padding:7px 10px">New</button><button id="tdel" class="quiet" style="padding:7px 10px" title="Delete this tournament">×</button></span></label>
     <label>Date <input id="date" type="date"></label>
-    <label>Starting hole (pick first) <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
-    <label>Starting hole group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
+    <label>Your group (pick first) <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:200px"></select></label>
+    <label>Group name <input id="event" type="text" placeholder="fills in when you pick" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
   </div>
 </header>
 <div class="stripes"></div>
 <div id="gate" style="display:none;max-width:560px;margin:30px auto;padding:0 16px;text-align:center">
   <div style="background:#fff;border-radius:16px;padding:26px 18px;border-left:10px solid var(--red)">
     <div style="font-size:26px;font-weight:900;color:var(--green)">★ Round hasn't started yet ★</div>
-    <p style="font-size:17px;line-height:1.5;margin:12px 0 18px">Scorecards open when the admin starts the round. Until then, get signed up and into a group.</p>
-    <a class="btn" href="groups.html" style="background:var(--red);color:#fff;font-size:19px;padding:14px 22px;display:inline-block">Go to groups ★</a>
-    <div style="margin-top:14px"><a href="index.html" style="color:var(--green);font-weight:700">Sign up</a></div>
+    <p style="font-size:17px;line-height:1.5;margin:12px 0 18px">Scorecards open when the admin starts the round. Make sure you're signed up — the admin will tell you your group and starting hole.</p>
+    <a class="btn" href="index.html" style="background:var(--red);color:#fff;font-size:19px;padding:14px 22px;display:inline-block">Sign up ★</a>
     <div id="gateMsg" style="margin-top:14px;font-size:13px;color:var(--muted)"></div>
   </div>
 </div>
 
 <div class="bar">
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
-  <button id="loadGroup">⬇ Load my group</button>
   <button id="add">+ Add player</button>
   <button class="quiet" onclick="window.print()">Print / save as PDF</button>
   <button id="send">Send results to admin</button>
@@ -224,7 +222,7 @@
   <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
   Baskets marked a/b/c are played more than once from different tees. Baskets 26 and 27 play red tee then blue tee.
   CTP marks the 18 closest-to-pin holes. Leave a box blank if a hole hasn't been played yet; totals count only the holes you've entered.
-  Pick your group's starting hole at the top — the group name fills in by itself and Hole by hole starts there and wraps around. Under each player's name on the full card, pick their division and type the one disc they're throwing. Each tournament or round is saved separately: pick one at the top, or tap New to start another without touching the others. Tap Send results to admin whenever — sending never locks your scores, and you can send again later; the newest one counts. Scores save on this device automatically; Save backup also puts a copy in your files so you can restore it on any phone or computer.
+  Pick your group at the top (the admin makes the groups). Your players and starting hole fill in by themselves, and Hole by hole starts there and wraps around. You can't send results without picking a group. Under each player's name on the full card, pick their division and type the one disc they're throwing. Each tournament or round is saved separately: pick one at the top, or tap New to start another without touching the others. Tap Send results to admin whenever — sending never locks your scores, and you can send again later; the newest one counts. Scores save on this device automatically; Save backup also puts a copy in your files so you can restore it on any phone or computer.
 </div>
 
 <script>
@@ -269,9 +267,12 @@ function load(){
 function switchTournament(id){ if(!store.tournaments[id]) return; store.current=id; state=store.tournaments[id].data; ensureIds(); build(); renderTournaments(); renderStart(); setView(state.view||"card"); }
 function startLabel(i){ return `Hole ${i+1} (basket ${HOLES[i][0]})`; }
 function autoName(){ return state.startHole===undefined ? "" : `Start hole ${state.startHole+1}`; }
+let SRV={groups:[],players:[]};
+async function fetchGroups(){ try{ const r=await fetch("/api?event="+encodeURIComponent(localStorage.getItem("ond-event")||"onendone"),{cache:"no-store"}); SRV=await r.json(); localStorage.setItem("ond-srv",JSON.stringify(SRV)); }catch(e){ try{ SRV=JSON.parse(localStorage.getItem("ond-srv")||"null")||SRV; }catch(_){ } } renderStart(); }
 function renderStart(){
   const sel=document.getElementById("startSel"); if(!sel) return;
-  sel.innerHTML=`<option value="">Pick starting hole…</option>`+HOLES.map((h,i)=>`<option value="${i}" ${state.startHole===i?"selected":""}>${startLabel(i)}</option>`).join("");
+  const gs=[...(SRV.groups||[])].sort((a,b)=>a.startHole-b.startHole);
+  sel.innerHTML=`<option value="">${gs.length?"Pick your group…":"No groups yet — ask the admin"}</option>`+gs.map(g=>`<option value="${g.id}" ${state.serverGroupId===g.id?"selected":""}>Hole ${g.startHole+1} · ${esc(g.name||"Start hole "+(g.startHole+1))}</option>`).join("");
 }
 function holeSeq(){ const st=state.startHole||0; return HOLES.map((_,k)=>(st+k)%36); }
 function renderTournaments(){
@@ -392,11 +393,14 @@ document.getElementById("clear").addEventListener("click", ()=>{
 });
 document.getElementById("date").addEventListener("input", e=>{state.date=e.target.value; save();});
 document.getElementById("startSel").addEventListener("change", e=>{
-  const prevAuto = !state.event || /^Start hole \d+$/.test(state.event) || state.event===store.tournaments[store.current].name;
-  state.startHole = e.target.value===""? undefined : +e.target.value;
-  if(prevAuto){ state.event=autoName(); document.getElementById("event").value=state.event; renderTournaments(); }
-  if(state.startHole!==undefined) state.hole=state.startHole;
-  save(); if(state.view==="hole") renderHole();
+  const g=(SRV.groups||[]).find(x=>x.id===e.target.value);
+  if(!g){ renderStart(); return; }
+  const mem=(SRV.players||[]).filter(p=>p.groupId===g.id);
+  const hasScores=state.players.some(p=>Object.keys(p.scores).length);
+  if(hasScores&&!confirm("This card already has scores. Switch group and replace the player list?")){ renderStart(); return; }
+  state.serverGroupId=g.id; state.startHole=g.startHole; state.hole=g.startHole; state.event=g.name||("Start hole "+(g.startHole+1));
+  state.players=mem.length?mem.map(p=>({id:"s"+p.id,name:p.name,disc:p.disc,division:p.division,scores:{}})):state.players;
+  ensureIds(); document.getElementById("event").value=state.event; save(); build(); renderStart(); if(state.view==="hole") renderHole();
 });
 document.getElementById("tsel").addEventListener("change", e=>switchTournament(e.target.value));
 document.getElementById("tnew").onclick=()=>{
@@ -501,6 +505,7 @@ function backupFile(){
   return new File([JSON.stringify({...state, sentAt:new Date().toISOString()},null,1)],name,{type:"application/json"});
 }
 document.getElementById("send").onclick=async()=>{
+  if(!state.serverGroupId||state.startHole===undefined){ alert("Pick your group at the top first (starting hole + group name). Results can't be sent without it."); return; }
   const f=backupFile();
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
   if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can keep playing and send again later. Send now?")) return;
@@ -522,22 +527,7 @@ document.getElementById("restore").addEventListener("change",e=>{
 });
 window.addEventListener("beforeunload",e=>{ if(!storageWorks() && state.players.some(p=>Object.keys(p.scores).length)){ e.preventDefault(); e.returnValue=""; } });
 
-document.getElementById("loadGroup").onclick=async()=>{
-  const EVENT=(localStorage.getItem("ond-event")||"onendone");
-  let d; try{ const r=await fetch("/api?event="+encodeURIComponent(EVENT)); d=await r.json(); }catch(e){ alert("Couldn't reach the sign-up server."); return; }
-  const gs=[...d.groups].sort((a,b)=>a.startHole-b.startHole); if(!gs.length){ alert("No groups have been made yet on the Groups page."); return; }
-  let me=null; try{ me=JSON.parse(localStorage.getItem("ond-me")||"null"); }catch(e){}
-  const mineG=me&&d.players.find(p=>p.id===me.id)?.groupId;
-  const pick=prompt("Type the starting hole number of your group:\n"+gs.map(g=>`Hole ${g.startHole+1}: `+d.players.filter(p=>p.groupId===g.id).map(p=>p.name).join(", ")).join("\n"), mineG?String(gs.find(g=>g.id===mineG).startHole+1):"");
-  if(pick===null) return; const g=gs.find(x=>x.startHole===(+pick-1)); if(!g){ alert("No group starts on hole "+pick+"."); return; }
-  const mem=d.players.filter(p=>p.groupId===g.id); if(!mem.length){ alert("That group has no players yet."); return; }
-  const hasScores=state.players.some(p=>Object.keys(p.scores).length);
-  if(hasScores&&!confirm("This card already has scores. Replace the player list anyway?")) return;
-  state.startHole=g.startHole; state.hole=g.startHole; state.event="Start hole "+(g.startHole+1);
-  state.players=mem.map(p=>({id:"s"+p.id,name:p.name,disc:p.disc,division:p.division,scores:{}}));
-  ensureIds(); save(); build(); renderStart(); setView("card"); alert(`Loaded ${mem.length} players for start hole ${g.startHole+1}.`);
-};
-load(); build(); renderTournaments(); renderStart(); setView(state.view||"card");
+load(); build(); renderTournaments(); renderStart(); fetchGroups(); setInterval(fetchGroups,30000); setView(state.view||"card");
 (async function gate(){
   const EVENT=(localStorage.getItem("ond-event")||"onendone");
   const isAdm=(()=>{ try{ return sessionStorage.getItem("dg-admin")==="1"; }catch(e){ return false; } })();

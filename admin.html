@@ -121,7 +121,7 @@
     <div class="row"><button id="syncBtn">⟳ Sync from sign-up site</button></div>
     <div class="row"><button class="quiet" id="addGroups">＋ Add groups' results (files)</button><button class="quiet" id="clearGroups">Remove added groups</button></div>
     <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
-    <div class="note">Assign each group its starting hole with the dropdown on its card. Groups come in from scorekeepers' result files, from this phone's own card, or you can make one from sign-ups (＋ New group). Re-adding a group's file replaces its scores but keeps your edits.</div>
+    <div class="note">You build the groups here: ＋ New group → pick a starting hole → check the players (about 6 per hole). Only admin can rename a group or move its hole. Scorekeepers pick their group from this list on their card, so what you set here is what they get. Result files attach by starting hole.</div>
   </section>
 
   <section id="done">
@@ -210,7 +210,7 @@ function groupsRaw(){
   const g=[];
   if(state.players.length) g.push({key:state.cardId,label:state.event||"This phone's card",startHole:state.startHole,players:state.players,when:null,kind:"mine"});
   state.groups.forEach(x=>g.push({key:x.cardId||("l:"+x.label),label:x.label,startHole:x.startHole,players:x.players,when:x.when,kind:"import"}));
-  state.planned.forEach(x=>g.push({key:x.id,label:x.label,startHole:x.startHole,players:x.players,when:null,kind:"planned"}));
+  state.planned.forEach(x=>g.push({key:x.id,label:x.label,startHole:x.startHole,players:x.players,when:null,kind:"planned",serverId:x.serverId}));
   return g;
 }
 function groups(){
@@ -219,7 +219,7 @@ function groups(){
     const players=g.players.filter(p=>!((state.edits[g.key]||{})[pKey(p)]||{}).removed).map(p=>applyEdit(g.key,p));
     const lines=players.map(p=>line(p,g,sh));
     const allDone=lines.length>0&&lines.every(l=>l.status==="done"), any=lines.some(l=>l.thru>0);
-    const label = sh!=null && /^(Start hole|This phone|Practice|New group)/.test(g.label||"") ? `Start hole ${sh+1}` : (g.label||"Group");
+    const label = g.kind==="planned" && g.serverId ? g.label : (sh!=null && /^(Start hole|This phone|Practice|New group)/.test(g.label||"") ? `Start hole ${sh+1}` : (g.label||"Group"));
     return {...g,startHole:sh,label,players,lines,status:allDone?"done":any?"play":"none"};
   }).sort((a,b)=>(a.startHole??99)-(b.startHole??99)||a.label.localeCompare(b.label));
 }
@@ -247,7 +247,7 @@ $("pSearch").oninput=renderPlayers;
 function groupCard(g,dups){
   return `<div class="card ${g.status}"><div class="ch">${holeBox(g.startHole)}<div class="t"><div class="nm">${esc(g.label)}</div><div class="sub">${g.players.length} player${g.players.length===1?"":"s"}${g.when?" · sent "+new Date(g.when).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):g.kind==="mine"?" · this phone":g.kind==="planned"?" · made here":""}</div></div>${pill(g.status)}</div>
     <div class="members">${g.lines.length?g.lines.map(l=>member(l,dups,false)).join(""):`<div class="m" style="cursor:default;color:var(--muted)">No players in this group</div>`}</div>
-    <div class="cf"><label>Start</label><select data-start="${esc(g.key)}">${holeOpts(g.startHole)}</select><button class="quiet" data-addp="${esc(g.key)}">＋ Player</button>${g.kind!=="mine"?`<button class="quiet" data-delg="${esc(g.key)}" style="color:var(--red)">Remove</button>`:""}</div></div>`;
+    <div class="cf"><label>Start</label><select data-start="${esc(g.key)}">${holeOpts(g.startHole)}</select><button class="quiet" data-addp="${esc(g.key)}">＋ Player</button>${g.serverId?`<button class="quiet" data-rename="${esc(g.key)}">Rename</button>`:""}${g.kind!=="mine"?`<button class="quiet" data-delg="${esc(g.key)}" style="color:var(--red)">Remove</button>`:""}</div></div>`;
 }
 function renderGroups(){
   const gs=groups(); const dups=dupSet(allLines());
@@ -263,14 +263,15 @@ document.addEventListener("change",e=>{
   const v=e.target.value===""?undefined:+e.target.value;
   const taken=groups().find(g=>g.key!==k&&g.startHole===v);
   if(v!==undefined&&taken&&!confirm(`Hole ${v+1} is already used by "${taken.label}". Use it anyway?`)){ renderAll(); return; }
-  state.startOv[k]=v; const pl=state.planned.find(x=>x.id===k); if(pl){ pl.startHole=v; if(pl.serverId&&v!=null) apiPost({action:"setHole",groupId:pl.serverId,startHole:v}).catch(()=>alert("Saved here, but couldn't update the sign-up site.")); }
+  state.startOv[k]=v; const pl=state.planned.find(x=>x.id===k); if(pl){ pl.startHole=v; if(pl.serverId&&v!=null){ if(/^Start hole \d+$/.test(pl.label)) pl.label="Start hole "+(v+1); pushGroup(pl); } }
   if(k===state.cardId){ state.startHole=v; state.event=v!=null?`Start hole ${v+1}`:state.event; }
   save(); renderAll();
 });
 document.addEventListener("click",e=>{
   const m=e.target.closest(".m[data-g]"); if(m){ openPlayer(m.dataset.g,m.dataset.p); return; }
   if(e.target.dataset.addp!==undefined){ openAddPlayer(e.target.dataset.addp); return; }
-  if(e.target.dataset.delg!==undefined){ const k=e.target.dataset.delg; const g=groups().find(x=>x.key===k); if(g&&confirm(`Remove group "${g.label}" and its players from admin?`)){ state.groups=state.groups.filter(x=>(x.cardId||("l:"+x.label))!==k); state.planned=state.planned.filter(x=>x.id!==k); delete state.edits[k]; delete state.startOv[k]; save(); renderAll(); } return; }
+  if(e.target.dataset.rename!==undefined){ const pl=serverGroup(e.target.dataset.rename); if(!pl) return; const n=prompt("Group name (only admin can change this):",pl.label); if(n===null) return; pl.label=n.trim()||pl.label; save(); renderAll(); pushGroup(pl); return; }
+  if(e.target.dataset.delg!==undefined){ const k=e.target.dataset.delg; const g=groups().find(x=>x.key===k); if(g&&confirm(`Remove group "${g.label}"? Players go back to unassigned.`)){ const pl=serverGroup(k); state.groups=state.groups.filter(x=>(x.cardId||("l:"+x.label))!==k); state.planned=state.planned.filter(x=>x.id!==k); delete state.edits[k]; delete state.startOv[k]; save(); renderAll(); if(pl) apiPost({action:"deleteGroup",groupId:pl.serverId}).then(()=>syncServer(true)).catch(()=>alert("Removed here, but the site didn't update.")); } return; }
 });
 
 function sheet(html){ $("sheet").innerHTML=html; document.body.classList.add("sheet"); }
@@ -291,19 +292,21 @@ function openPlayer(gKey,pk){
   $("eSave").onclick=()=>{
     const newG=$("eGroup").value;
     const ed={name:$("eName").value.trim()||l.name,disc:$("eDisc").value.trim(),division:$("eDiv").value};
+    const src=g.players.find(p=>pKey(p)===pk)||{};
+    if(src.serverId) apiPost({action:"update",playerId:src.serverId,...ed}).catch(()=>{});
     if(newG!==gKey){
-      const src=g.players.find(p=>pKey(p)===pk)||{};
       (state.edits[gKey]=state.edits[gKey]||{})[pk]={removed:true};
+      const oldPl=serverGroup(gKey); if(oldPl){ oldPl.players=oldPl.players.filter(p=>pKey(p)!==pk); pushGroup(oldPl); }
       addPlayerToGroup(newG,{...src,...ed,id:undefined,scores:src.scores||{}});
-    } else { (state.edits[gKey]=state.edits[gKey]||{})[pk]={...((state.edits[gKey]||{})[pk]||{}),...ed}; }
+    } else { (state.edits[gKey]=state.edits[gKey]||{})[pk]={...((state.edits[gKey]||{})[pk]||{}),...ed}; const pl=serverGroup(gKey); if(pl){ Object.assign(pl.players.find(p=>pKey(p)===pk)||{},ed); } }
     save(); closeSheet(); renderAll();
   };
-  $("eRemove").onclick=()=>{ if(confirm(`Remove ${l.name} from ${g.label}?`)){ (state.edits[gKey]=state.edits[gKey]||{})[pk]={removed:true}; save(); closeSheet(); renderAll(); } };
+  $("eRemove").onclick=()=>{ if(confirm(`Remove ${l.name} from ${g.label}?`)){ (state.edits[gKey]=state.edits[gKey]||{})[pk]={removed:true}; const pl=serverGroup(gKey); if(pl){ pl.players=pl.players.filter(p=>pKey(p)!==pk); pushGroup(pl); } save(); closeSheet(); renderAll(); } };
 }
-function addPlayerToGroup(gKey,p){
-  p.id="a"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+async function addPlayerToGroup(gKey,p){
+  p.id=p.id||("a"+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
   if(gKey===state.cardId){ state.players.push(p); return; }
-  const pl=state.planned.find(x=>x.id===gKey); if(pl){ pl.players.push(p); return; }
+  const pl=state.planned.find(x=>x.id===gKey); if(pl){ pl.players.push(p); if(pl.serverId){ await ensureServerPlayer(p); await pushGroup(pl); } return; }
   const im=state.groups.find(x=>(x.cardId||("l:"+x.label))===gKey); if(im){ im.players.push(p); return; }
 }
 const unassigned=()=>state.signups.filter(s=>!allLines().some(l=>l.name.toLowerCase()===s.name.toLowerCase()));
@@ -316,23 +319,26 @@ function openAddPlayer(gKey){
     <div class="row"><button class="big" id="aSave">Add</button></div><div class="row"><button class="quiet" id="aCancel">Cancel</button></div>`);
   $("aCancel").onclick=closeSheet;
   $("aSave").onclick=()=>{
-    let n=0; [...document.querySelectorAll('[data-su]:checked')].forEach(cb=>{ const s=su[+cb.dataset.su]; addPlayerToGroup(gKey,{name:s.name,disc:s.disc,division:s.division,scores:{}}); n++; });
-    const nm=$("aName").value.trim(); if(nm){ addPlayerToGroup(gKey,{name:nm,disc:$("aDisc").value.trim(),division:$("aDiv").value,scores:{}}); n++; }
-    if(!n){ alert("Pick someone or type a name."); return; }
-    save(); closeSheet(); renderAll();
+    let n=0; const picks=[...document.querySelectorAll('[data-su]:checked')].map(cb=>su[+cb.dataset.su]);
+    const nm=$("aName").value.trim(); if(!picks.length&&!nm){ alert("Pick someone or type a name."); return; }
+    closeSheet();
+    (async()=>{ for(const s of picks){ await addPlayerToGroup(gKey,{name:s.name,disc:s.disc,division:s.division,serverId:s.serverId,scores:{}}); } if(nm){ await addPlayerToGroup(gKey,{name:nm,disc:$("aDisc").value.trim(),division:$("aDiv").value,scores:{}}); } save(); renderAll(); })();
   };
 }
 $("newGroup").onclick=()=>{
   const used=new Set(groups().map(g=>g.startHole).filter(x=>x!=null)); const free=HOLES.findIndex((_,i)=>!used.has(i)); const su=unassigned();
-  sheet(`<h2>New group</h2><div class="lab">Starting hole</div><select id="nHole">${holeOpts(free>=0?free:undefined)}</select>
+  sheet(`<h2>New group</h2><div class="lab">Starting hole</div><select id="nHole">${holeOpts(free>=0?free:undefined)}</select><div class="lab">Group name (optional)</div><input id="nName" placeholder="e.g. Start hole 7">
     ${su.length?`<div class="lab">Players (from sign-ups)</div>${suChecks(su)}`:`<div class="note">No unassigned sign-ups. You can add players to the group afterwards.</div>`}
     <div class="row"><button class="big" id="nSave">Create group</button></div><div class="row"><button class="quiet" id="nCancel">Cancel</button></div>`);
   $("nCancel").onclick=closeSheet;
   $("nSave").onclick=()=>{
     const sh=$("nHole").value===""?undefined:+$("nHole").value;
-    const id="g"+Date.now().toString(36)+Math.random().toString(36).slice(2,4);
-    const players=[...document.querySelectorAll('[data-su]:checked')].map(cb=>{const s=su[+cb.dataset.su]; return {id:"a"+Math.random().toString(36).slice(2,8),name:s.name,disc:s.disc,division:s.division,scores:{}};});
-    state.planned.push({id,label:sh!=null?`Start hole ${sh+1}`:"New group",startHole:sh,players}); save(); closeSheet(); renderAll();
+    if(sh==null){ alert("Pick a starting hole."); return; }
+    const picks=[...document.querySelectorAll('[data-su]:checked')].map(cb=>su[+cb.dataset.su]);
+    const name=($("nName").value||"").trim()||`Start hole ${sh+1}`;
+    closeSheet();
+    (async()=>{ try{ const r=await apiPost({action:"createGroup",startHole:sh,name,playerIds:picks.map(p=>p.serverId).filter(Boolean)}); await syncServer(true); }
+      catch(e){ alert("Couldn't reach the site — group not created. Check signal and try again."); } })();
   };
 };
 
@@ -408,16 +414,17 @@ $("suPasteBtn").onclick=()=>{ let n=0,d=[]; $("suPaste").value.split(/\n+/).forE
 $("suCsv").onclick=()=>{ const q=v=>`"${String(v??"").replace(/"/g,'""')}"`; dl("one-n-done-signups.csv","\ufeff"+[["Name","Disc","Division"].map(q).join(",")].concat(state.signups.map(x=>[x.name,x.disc,x.division].map(q).join(","))).join("\r\n"),"text/csv;charset=utf-8"); };
 $("suClear").onclick=()=>{ if(state.signups.length&&confirm("Clear the whole sign-up list?")){ state.signups=[]; save(); renderAll(); } };
 
-const EVENT=(localStorage.getItem("ond-event")||"onendone");
+const EVENT=(localStorage.getItem("ond-event")||"onendone"); let srv={players:[],groups:[],status:"signup"};
 async function apiPost(body){ const r=await fetch("/api?event="+encodeURIComponent(EVENT),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...body,pin:ADMIN_PIN})}); const j=await r.json().catch(()=>({})); if(!r.ok) throw j; return j; }
 async function syncServer(quiet){
   let d; try{ const r=await fetch("/api?event="+encodeURIComponent(EVENT)); d=await r.json(); }catch(e){ if(!quiet) alert("Couldn't reach the sign-up server."); return; }
   // sign-ups
   d.players.forEach(p=>{ const k=state.signups.findIndex(x=>x.serverId===p.id||x.name.toLowerCase()===p.name.toLowerCase()); const rec={name:p.name,disc:p.disc,division:p.division,serverId:p.id,when:new Date(p.createdAt).toISOString()}; if(k>=0) state.signups[k]={...state.signups[k],...rec}; else state.signups.push(rec); });
-  // groups -> planned (server-owned), unless a results file for that hole already exists
-  const fileHoles=new Set(state.groups.map(g=>state.startOv[g.cardId||("l:"+g.label)]??g.startHole).filter(x=>x!=null));
+  // server groups are the truth for planning; result files (scores) attach by starting hole
   state.planned=state.planned.filter(g=>!g.serverId);
-  d.groups.forEach(g=>{ if(fileHoles.has(g.startHole)) return; const mem=d.players.filter(p=>p.groupId===g.id).map(p=>({id:"s"+p.id,name:p.name,disc:p.disc,division:p.division,scores:{}})); state.planned.push({id:"srv"+g.id,serverId:g.id,label:"Start hole "+(g.startHole+1),startHole:g.startHole,players:mem}); });
+  const fileHoles=new Set(state.groups.map(g=>state.startOv[g.cardId||("l:"+g.label)]??g.startHole).filter(x=>x!=null));
+  d.groups.forEach(g=>{ if(fileHoles.has(g.startHole)) return; const mem=d.players.filter(p=>p.groupId===g.id).map(p=>({id:"s"+p.id,serverId:p.id,name:p.name,disc:p.disc,division:p.division,scores:{}})); state.planned.push({id:"srv"+g.id,serverId:g.id,label:g.name||("Start hole "+(g.startHole+1)),startHole:g.startHole,players:mem}); });
+  srv=d;
   srvStatus=d.status||"signup"; $("roundState").textContent=srvStatus==="live"?"Round: STARTED — scorecards are open":"Round: not started — scorecards hidden"; $("roundState").style.color=srvStatus==="live"?"var(--blue-dk)":"var(--red)";
   save(); renderAll(); $("status").textContent="Synced with sign-up site "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 }
@@ -425,6 +432,15 @@ let srvStatus="signup";
 $("syncBtn").onclick=()=>syncServer(false);
 $("startRound").onclick=async()=>{ if(!confirm("Start the round? Every group's scorecard opens up.")) return; try{ await apiPost({action:"setStatus",status:"live"}); await syncServer(true); alert("Round started. Scorecards are open."); }catch(e){ alert("Couldn't reach the server."); } };
 $("stopRound").onclick=async()=>{ if(!confirm("Hide scorecards again and go back to sign-up mode?")) return; try{ await apiPost({action:"setStatus",status:"signup"}); await syncServer(true); }catch(e){ alert("Couldn't reach the server."); } };
+function serverGroup(key){ const pl=state.planned.find(x=>x.id===key); return pl&&pl.serverId?pl:null; }
+async function pushGroup(pl){ // send a planned server group's hole/name/members to the site
+  const ids=pl.players.map(p=>p.serverId).filter(Boolean);
+  try{ await apiPost({action:"setMembers",groupId:pl.serverId,playerIds:ids,name:pl.label,startHole:pl.startHole}); }catch(e){ alert("Saved on this phone, but the site didn't update. Tap Sync and try again."); }
+}
+async function ensureServerPlayer(p){ // walk-up: create on server so cards can load them
+  if(p.serverId) return p.serverId;
+  try{ const r=await apiPost({action:"addPlayer",name:p.name,disc:p.disc,division:p.division}); p.serverId=r.player.id; return p.serverId; }catch(e){ return null; }
+}
 function renderAll(){ renderT(); renderGroups(); renderPlayers(); renderBoard(); renderSignups(); }
 load(); renderT(); setAdmin(isAdmin()); if(isAdmin()) syncServer(true); setInterval(()=>{ if(isAdmin()) syncServer(true); },20000);
 </script>
