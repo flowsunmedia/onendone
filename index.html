@@ -49,40 +49,39 @@
   <div id="done">
     <h2>★ You're signed up ★</h2>
     <div class="card" id="summary"></div>
-    <div class="step">Last step: send this to the tournament admin</div>
-    <p>Tap the button below and pick a text or email to the admin. That's what gets you on the list.</p>
-    <button id="share">Send my sign-up</button>
-    <button class="quiet" id="copy">Copy it instead</button>
+    <div class="step">Next: pick a group and starting hole</div>
+    <p>Everyone who's signed up shows on the next page. Join a group or start one.</p>
+    <button id="toGroups">Go to groups ★</button>
     <button class="quiet" id="again">Sign up another player</button>
   </div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let line="";
-$("go").onclick=()=>{
+const EVENT=(new URLSearchParams(location.search).get("event")||"onendone"); try{ localStorage.setItem("ond-event",EVENT); }catch(e){}
+let me=null; try{ me=JSON.parse(localStorage.getItem("ond-me")||"null"); }catch(e){}
+const editing=new URLSearchParams(location.search).get("edit")==="1";
+if(me){ $("name").value=me.name||""; $("disc").value=me.disc||""; $("div").value=me.division||""; if(!editing){ $("go").textContent="Update my sign-up ★"; } else { $("go").textContent="Save changes ★"; } }
+async function api(body){ const r=await fetch("/api?event="+encodeURIComponent(EVENT),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)}); const j=await r.json().catch(()=>({})); if(!r.ok) throw j; return j; }
+$("go").onclick=async()=>{
   const n=$("name").value.trim(), d=$("disc").value.trim(), v=$("div").value;
-  if(!n||!d||!v){ $("err").style.display="block"; return; }
-  $("err").style.display="none";
-  let sent=[]; try{ sent=JSON.parse(localStorage.getItem("ond-sent")||"[]"); }catch(e){}
-  if(sent.some(x=>x.toLowerCase()===n.toLowerCase())){ $("err").textContent=`"${n}" already signed up from this phone. You're on the list — no need to do it again.`; $("err").style.display="block"; return; }
-  if(sent.length>=6){ $("err").textContent="This phone has already signed up 6 players. Please see the admin to add more."; $("err").style.display="block"; return; }
-  if(sent.length>=1 && !confirm(`This phone already signed up ${sent.join(", ")}.\n\nOnly continue if "${n}" is a different player.`)) return;
-  sent.push(n); try{ localStorage.setItem("ond-sent",JSON.stringify(sent)); }catch(e){}
-  line=`One N Done sign-up: ${n} | ${d} | ${v}`;
-  $("summary").textContent=`${n} · ${d} · ${v}`;
-  $("form").style.display="none"; $("done").style.display="block"; window.scrollTo(0,0);
-  try{ localStorage.setItem("ond-signup",JSON.stringify({n,d,v})); }catch(e){}
+  if(!n||!d||!v){ $("err").textContent="Please fill in all three."; $("err").style.display="block"; return; }
+  $("err").style.display="none"; $("go").disabled=true; $("go").textContent="Signing up…";
+  try{
+    let r;
+    if(me&&me.id){ r=await api({action:"update",playerId:me.id,name:n,disc:d,division:v}); if(!r.player){ throw {error:"no player"}; } }
+    else { r=await api({action:"signup",name:n,disc:d,division:v}); }
+    me=r.player; localStorage.setItem("ond-me",JSON.stringify(me));
+    $("summary").textContent=`${me.name} · ${me.disc||"no disc"} · ${me.division||"no division"}`;
+    $("form").style.display="none"; $("done").style.display="block"; window.scrollTo(0,0);
+  }catch(err){
+    if(err.error==="taken"){ $("err").textContent=`"${n}" is already signed up. If that's you, you're all set — tap below to go to groups. If it's someone else, add a last initial.`; $("err").style.display="block"; $("err").insertAdjacentHTML("beforeend",'<div style="margin-top:8px"><a href="groups.html" style="color:#4A2600">Go to groups →</a></div>'); }
+    else if(err.error==="no player"){ me=null; localStorage.removeItem("ond-me"); $("err").textContent="Your old sign-up was cleared. Tap again to sign up fresh."; $("err").style.display="block"; $("go").textContent="Sign me up ★"; }
+    else { $("err").textContent="Couldn't reach the sign-up server. Check your signal and try again."; $("err").style.display="block"; }
+  }
+  $("go").disabled=false; if($("go").textContent==="Signing up…") $("go").textContent="Sign me up ★";
 };
-$("share").onclick=async()=>{
-  if(navigator.share){ try{ await navigator.share({title:"One N Done sign-up",text:line}); return; }catch(e){ if(e.name==="AbortError") return; } }
-  $("copy").click();
-};
-$("copy").onclick=async()=>{
-  const ok=()=>{ $("copy").textContent="Copied! Now paste it in a text to the admin"; };
-  try{ await navigator.clipboard.writeText(line); ok(); }catch(e){ prompt("Copy this and text it to the admin:",line); }
-};
-$("again").onclick=()=>{ $("err").textContent="Please fill in all three."; $("err").style.display="none"; $("name").value="";$("disc").value="";$("div").value=""; $("done").style.display="none"; $("form").style.display="block"; $("copy").textContent="Copy it instead"; };
-
+$("toGroups").onclick=()=>location.href="groups.html";
+$("again").onclick=()=>{ me=null; localStorage.removeItem("ond-me"); $("name").value="";$("disc").value="";$("div").value=""; $("done").style.display="none"; $("form").style.display="block"; $("go").textContent="Sign me up ★"; };
 </script>
 </body>
 </html>

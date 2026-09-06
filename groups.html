@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One N Done – Groups</title>
+<style>
+  :root{--navy:#1B2A5B;--navy2:#2E4A9E;--red:#B22234;--orange:#F28C28;--orange-dk:#4A2600;--muted:#666;--line:#DDD;--paper:#fff;--wash:#F4F6FB;--gold:#FFD866;--blue:#DDEBFF;--blue-dk:#1B4FB5}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--wash);color:#1A1A1A;font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px}
+  header{background:var(--navy) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.25%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.25%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:16px;text-align:center}
+  header h1{margin:0;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+  header h1::before,header h1::after{content:"★";color:var(--gold);margin:0 8px}
+  header p{margin:4px 0 0;font-size:14px;opacity:.95}
+  .stripes{height:12px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
+  main{max-width:640px;margin:0 auto;padding:12px 12px 100px}
+  .me{background:var(--paper);border-radius:14px;padding:14px;margin-bottom:12px;border-left:10px solid var(--red);display:flex;align-items:center;gap:10px}
+  .me .n{flex:1} .me b{font-size:19px;display:block} .me span{font-size:14px;color:var(--muted)}
+  button,a.btn{font-family:inherit;font-size:17px;font-weight:800;border:0;border-radius:10px;padding:12px 16px;cursor:pointer;background:var(--red);color:#fff;text-decoration:none;display:inline-block}
+  button.quiet,a.btn.quiet{background:#E4E9F7;color:var(--navy)}
+  button.big{width:100%;font-size:19px;padding:16px}
+  button:disabled{opacity:.5}
+  h2{font-size:18px;color:var(--navy);margin:16px 4px 8px}
+  h2 small{font-weight:600;color:var(--muted);font-size:14px}
+  .card{background:var(--paper);border-radius:14px;margin-bottom:12px;overflow:hidden;border-left:10px solid var(--navy)}
+  .card.mine{border-left-color:var(--red);box-shadow:0 0 0 3px var(--red) inset}
+  .ch{display:flex;align-items:center;gap:12px;padding:12px 14px}
+  .hole{background:var(--navy);color:var(--gold);font-weight:900;font-size:24px;min-width:64px;height:64px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+  .hole small{font-size:10px;color:#fff;font-weight:600;margin-top:3px}
+  .ch .t{flex:1} .ch .nm{font-weight:800;font-size:19px} .ch .sub{font-size:14px;color:var(--muted)}
+  .m{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line)}
+  .m b{font-size:17px;display:block} .m span{font-size:13px;color:var(--muted)} .m .n{flex:1}
+  .tag{font-size:12px;font-weight:800;padding:3px 8px;border-radius:99px;background:var(--blue);color:var(--blue-dk)}
+  .cf{padding:10px 14px;border-top:1px solid var(--line);background:#F7F8FC}
+  .free{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .free .p{background:var(--paper);border-radius:12px;padding:10px 12px;border-left:6px solid #BBB}
+  .free .p b{display:block;font-size:16px} .free .p span{font-size:12px;color:var(--muted)}
+  .empty{background:var(--paper);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
+  select{font-family:inherit;font-size:18px;padding:12px;border:2px solid var(--navy);border-radius:10px;width:100%;background:#fff}
+  .foot{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:3px solid var(--navy);padding:10px 12px;display:flex;gap:8px;z-index:5}
+  .foot>*{flex:1;text-align:center}
+  .err{background:var(--orange);color:var(--orange-dk);border-radius:12px;padding:12px;font-weight:700;margin-bottom:12px}
+  .live{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
+  #sheetBg{display:none;position:fixed;inset:0;background:rgba(27,42,91,.55);z-index:20}
+  #sheet{display:none;position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-radius:18px 18px 0 0;padding:16px 16px 28px;z-index:21;max-height:90vh;overflow:auto}
+  body.sheet #sheetBg,body.sheet #sheet{display:block}
+  #sheet h3{margin:0 0 10px;font-size:20px;color:var(--navy)}
+  .row{display:flex;gap:8px;margin-top:10px} .row>*{flex:1}
+</style>
+</head>
+<body>
+<header><h1>One N Done</h1><p>Build your group · pick a starting hole</p></header>
+<div class="stripes"></div>
+<main>
+  <div id="err" class="err" style="display:none"></div>
+  <div id="me"></div>
+  <h2>Groups <small id="gcount"></small></h2>
+  <div id="glist"></div>
+  <h2>Not in a group yet <small id="fcount"></small></h2>
+  <div id="free" class="free"></div>
+  <div class="live" id="live"></div>
+</main>
+<div class="foot">
+  <button id="newBtn">＋ Start a group</button>
+  <a class="btn quiet" href="card.html">Scorecard</a>
+</div>
+<div id="sheetBg"></div><div id="sheet"></div>
+<script>
+const HOLES=[["1","Blue",3],["2a","Blue",2],["2b","Orange flag",2],["4","Blue",3],["5","Blue (low)",3],["6","Blue",3],["7","Blue",3],["8","Blue",3],["9","Blue",3],["10","Blue",3],["11","Blue",3],["12a","Blue",2],["12b","Orange flag",2],["12c","Orange flag",2],["13","Blue",3],["14","Blue",3],["15","Blue",3],["16","Blue",3],["17","Blue",3],["18","Blue",3],["19a","Blue",2],["19b","Orange flag",2],["20a","Blue",3],["20b","Orange flag",2],["21a","Blue",3],["21b","Orange flag",2],["22a","Blue",3],["22b","Orange flag",2],["23a","Blue",3],["23b","Orange flag",2],["24","Blue",3],["25","Blue",3],["26","Red",2],["26","Blue",3],["27","Red",2],["27","Blue",3]];
+const EVENT=(new URLSearchParams(location.search).get("event")||localStorage.getItem("ond-event")||"onendone");
+const $=id=>document.getElementById(id); const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+let me=null; try{ me=JSON.parse(localStorage.getItem("ond-me")||"null"); }catch(e){}
+let data={players:[],groups:[]};
+async function api(body){ const r=await fetch("/api?event="+encodeURIComponent(EVENT),{method:body?"POST":"GET",headers:{"content-type":"application/json"},body:body?JSON.stringify(body):undefined}); const j=await r.json().catch(()=>({})); if(!r.ok) throw j; return j; }
+async function refresh(){ try{ data=await api(); $("err").style.display="none"; render(); $("live").textContent="Live · updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"}); }catch(e){ $("err").textContent="Can't reach the sign-up server right now. Pull down to retry."; $("err").style.display="block"; } }
+function sheet(h){ $("sheet").innerHTML=h; document.body.classList.add("sheet"); } function closeSheet(){ document.body.classList.remove("sheet"); }
+$("sheetBg").onclick=closeSheet;
+function render(){
+  const players=data.players, groups=[...data.groups].sort((a,b)=>a.startHole-b.startHole);
+  const mine=me&&players.find(p=>p.id===me.id); if(mine) me=mine;
+  $("me").innerHTML = mine ? `<div class="me"><div class="n"><b>${esc(mine.name)}</b><span>${esc(mine.disc)||"no disc"} · ${esc(mine.division)||"no division"}${mine.groupId?" · in a group":" · not in a group yet"}</span></div><a class="btn quiet" href="index.html?edit=1">Edit</a></div>`
+    : `<div class="me"><div class="n"><b>You're not signed up on this phone</b><span>Sign up first, then come back here to join a group.</span></div><a class="btn" href="index.html">Sign up</a></div>`;
+  $("gcount").textContent=groups.length?`${groups.length} so far`:"none yet";
+  $("glist").innerHTML=groups.length?groups.map(g=>{
+    const mem=players.filter(p=>p.groupId===g.id); const inIt=mine&&mine.groupId===g.id; const full=mem.length>=6;
+    return `<div class="card ${inIt?"mine":""}"><div class="ch"><div class="hole">${g.startHole+1}<small>basket ${HOLES[g.startHole][0]}</small></div><div class="t"><div class="nm">Start hole ${g.startHole+1}</div><div class="sub">${mem.length} of 6 players${inIt?" · your group":""}</div></div>${inIt?`<button class="quiet" data-leave="${g.id}">Leave</button>`:mine&&!full?`<button data-join="${g.id}">Join</button>`:full?`<span class="tag">Full</span>`:""}</div>
+      ${mem.map(p=>`<div class="m"><div class="n"><b>${esc(p.name)}${me&&p.id===me.id?" (you)":""}</b><span>${esc(p.disc)||"no disc"} · ${esc(p.division)||"no division"}</span></div></div>`).join("")}</div>`;
+  }).join(""):`<div class="empty">No groups yet. Be the first — tap <b>＋ Start a group</b>.</div>`;
+  const free=players.filter(p=>!p.groupId);
+  $("fcount").textContent=free.length?`${free.length} player${free.length===1?"":"s"}`:"everyone's placed";
+  $("free").innerHTML=free.length?free.map(p=>`<div class="p"><b>${esc(p.name)}${me&&p.id===me.id?" (you)":""}</b><span>${esc(p.disc)||"no disc"} · ${esc(p.division)||"no division"}</span></div>`).join(""):"";
+  $("newBtn").disabled=!mine;
+}
+document.addEventListener("click",async e=>{
+  const j=e.target.dataset.join, l=e.target.dataset.leave;
+  try{
+    if(j){ if(me.groupId&&!confirm("Leave your current group and join this one?")) return; const r=await api({action:"join",groupId:j,playerId:me.id}); data=r.data; render(); }
+    if(l){ const r=await api({action:"leave",playerId:me.id}); data=r.data; render(); }
+  }catch(err){ alert(err.error==="full"?"That group is full (6 players).":"Didn't work — try again."); refresh(); }
+});
+$("newBtn").onclick=()=>{
+  const used=new Set(data.groups.map(g=>g.startHole));
+  sheet(`<h3>Start a group</h3><p style="margin:0 0 6px;color:var(--muted);font-size:14px">Pick the hole your group tees off from. Holes already taken are marked.</p>
+    <select id="nh">${HOLES.map((h,i)=>`<option value="${i}" ${used.has(i)?"disabled":""}>Hole ${i+1} · basket ${h[0]}${used.has(i)?" — taken":""}</option>`).join("")}</select>
+    <div class="row"><button class="big" id="nGo">Start it & join</button></div><div class="row"><button class="quiet" id="nNo">Cancel</button></div>`);
+  const first=[...$("nh").options].find(o=>!o.disabled); if(first) $("nh").value=first.value;
+  $("nNo").onclick=closeSheet;
+  $("nGo").onclick=async()=>{ try{ const r=await api({action:"createGroup",startHole:+$("nh").value,playerId:me.id}); data=r.data; closeSheet(); render(); }catch(err){ alert("Didn't work — try again."); } };
+};
+refresh(); setInterval(refresh,6000);
+</script>
+</body>
+</html>

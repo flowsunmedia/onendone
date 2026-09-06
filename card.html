@@ -183,6 +183,7 @@
 
 <div class="bar">
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
+  <button id="loadGroup">⬇ Load my group</button>
   <button id="add">+ Add player</button>
   <button class="quiet" onclick="window.print()">Print / save as PDF</button>
   <button id="send">Send results to admin</button>
@@ -512,6 +513,21 @@ document.getElementById("restore").addEventListener("change",e=>{
 });
 window.addEventListener("beforeunload",e=>{ if(!storageWorks() && state.players.some(p=>Object.keys(p.scores).length)){ e.preventDefault(); e.returnValue=""; } });
 
+document.getElementById("loadGroup").onclick=async()=>{
+  const EVENT=(localStorage.getItem("ond-event")||"onendone");
+  let d; try{ const r=await fetch("/api?event="+encodeURIComponent(EVENT)); d=await r.json(); }catch(e){ alert("Couldn't reach the sign-up server."); return; }
+  const gs=[...d.groups].sort((a,b)=>a.startHole-b.startHole); if(!gs.length){ alert("No groups have been made yet on the Groups page."); return; }
+  let me=null; try{ me=JSON.parse(localStorage.getItem("ond-me")||"null"); }catch(e){}
+  const mineG=me&&d.players.find(p=>p.id===me.id)?.groupId;
+  const pick=prompt("Type the starting hole number of your group:\n"+gs.map(g=>`Hole ${g.startHole+1}: `+d.players.filter(p=>p.groupId===g.id).map(p=>p.name).join(", ")).join("\n"), mineG?String(gs.find(g=>g.id===mineG).startHole+1):"");
+  if(pick===null) return; const g=gs.find(x=>x.startHole===(+pick-1)); if(!g){ alert("No group starts on hole "+pick+"."); return; }
+  const mem=d.players.filter(p=>p.groupId===g.id); if(!mem.length){ alert("That group has no players yet."); return; }
+  const hasScores=state.players.some(p=>Object.keys(p.scores).length);
+  if(hasScores&&!confirm("This card already has scores. Replace the player list anyway?")) return;
+  state.startHole=g.startHole; state.hole=g.startHole; state.event="Start hole "+(g.startHole+1);
+  state.players=mem.map(p=>({id:"s"+p.id,name:p.name,disc:p.disc,division:p.division,scores:{}}));
+  ensureIds(); save(); build(); renderStart(); setView("card"); alert(`Loaded ${mem.length} players for start hole ${g.startHole+1}.`);
+};
 load(); build(); renderTournaments(); renderStart(); setView(state.view||"card");
 if(!storageWorks()){ const st=document.getElementById("status"); st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
 </script>
