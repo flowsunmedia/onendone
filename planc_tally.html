@@ -115,7 +115,11 @@
   <section id="groups">
     <div class="sum" id="gSum"></div>
     <div id="gList"></div>
-    <div class="row"><button id="addGroups">＋ Add groups' results (files)</button><button id="pasteBtn">＋ Paste results text</button></div>
+    <div class="card" style="padding:14px;border-left-color:var(--red)"><div style="font-weight:800;font-size:18px;color:var(--navy)">Results from Google Sheet</div>
+      <input id="sheetUrl" placeholder="Paste the Sheet's published CSV link here (once)" style="margin:8px 0">
+      <button class="big" id="loadSheet">⟳ Load all results</button>
+      <div class="note" id="sheetNote">In your Google Sheet: File → Share → Publish to web → choose "Comma-separated values (.csv)" → Publish → copy that link and paste it above. After that it's one tap.</div></div>
+    <div class="row"><button class="quiet" id="addGroups">＋ Add result files</button><button class="quiet" id="pasteBtn">＋ Paste results text</button></div>
     <div class="row"><button class="quiet" id="clearGroups">Remove added groups</button></div>
     <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
     <div class="note">Assign each group its starting hole with the dropdown on its card. Groups come in from scorekeepers' result files, from this phone's own card, or you can make one from sign-ups (＋ New group). Re-adding a group's file replaces its scores but keeps your edits.</div>
@@ -334,6 +338,20 @@ $("newGroup").onclick=()=>{
 };
 
 $("addGroups").onclick=()=>$("groupFiles").click();
+function parseCSV(t){ const rows=[]; let row=[],cell="",q=false; for(let i=0;i<t.length;i++){ const c=t[i]; if(q){ if(c=='"'){ if(t[i+1]=='"'){cell+='"';i++;} else q=false; } else cell+=c; } else { if(c=='"') q=true; else if(c==','){row.push(cell);cell="";} else if(c=='\n'||c=='\r'){ if(c=='\r'&&t[i+1]=='\n') i++; row.push(cell); rows.push(row); row=[]; cell=""; } else cell+=c; } } if(cell!==""||row.length){ row.push(cell); rows.push(row);} return rows; }
+function extractResults(text){ const out=[]; let i=0; while((i=text.indexOf("DATA:",i))>=0){ let j=i+5, depth=0, inStr=false, esc=false, start=j; for(;j<text.length;j++){ const c=text[j]; if(inStr){ if(esc) esc=false; else if(c=="\\") esc=true; else if(c=='"') inStr=false; } else { if(c=='"') inStr=true; else if(c=='{') depth++; else if(c=='}'){ depth--; if(depth===0){ j++; break; } } } } try{ out.push(JSON.parse(text.slice(start,j))); }catch(e){} i=j; } return out; }
+$("sheetUrl").value=localStorage.getItem("ond-sheet-url")||"";
+$("loadSheet").onclick=async()=>{
+  const url=$("sheetUrl").value.trim(); if(!url){ alert("Paste the Sheet's published CSV link first."); return; }
+  localStorage.setItem("ond-sheet-url",url); const b=$("loadSheet"); b.textContent="Loading…"; b.disabled=true;
+  try{ const r=await fetch(url+(url.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error(r.status); const text=await r.text();
+    const rows=parseCSV(text); const found=[]; rows.forEach(row=>row.forEach(cell=>{ if(cell&&cell.includes("DATA:")) found.push(...extractResults(cell)); }));
+    found.sort((x,y)=>String(x.sentAt||"").localeCompare(String(y.sentAt||"")));
+    state.groups=[]; let n=0; found.forEach(d=>{ if(importResultsObj(d)) n++; });
+    save(); renderAll(); $("sheetNote").textContent="Loaded "+found.length+" sends → "+state.groups.length+" groups (newest send per group wins). "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+  }catch(e){ alert("Couldn't load the sheet. Check the link is the published CSV link, and that you have signal."); }
+  b.textContent="⟳ Load all results"; b.disabled=false;
+};
 function importResultsObj(d,fallbackLabel){ if(!d||!d.players) return false;
   const label=d.event||(d.startHole!=null?"Start hole "+(d.startHole+1):fallbackLabel||"Group");
   const g={label,players:d.players,startHole:d.startHole,when:d.sentAt||new Date().toISOString(),cardId:d.cardId||null};
