@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v8</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v9</p>
   <div class="meta">
         <label>Date <input id="date" type="date"></label>
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
@@ -529,13 +529,16 @@ function showResultsPanel(ok){
   const r=document.getElementById("resRetry"); if(r) r.onclick=()=>document.getElementById("send").click();
   const dl=document.getElementById("resDl"); if(dl) dl.onclick=()=>{ const blob=new Blob([txt],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="one-n-done-results-"+(state.event||"group").replace(/[^a-z0-9]+/gi,"-")+".txt"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
 }
-document.getElementById("send").onclick=async()=>{
+document.getElementById("send").onclick=()=>{
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
   if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can send again later. Send now?")) return;
-  const b=document.getElementById("send"); const label=b.textContent; b.textContent="Sending…"; b.disabled=true;
-  const ok=await submitResults();
-  b.textContent=label; b.disabled=false;
-  if(ok) afterSend(); showResultsPanel(ok);
+  save();
+  const txt=resultsText();
+  const url=FORM_URL.replace("/formResponse","/viewform")+"?usp=pp_url&"+FORM_FIELD+"="+encodeURIComponent(txt);
+  submitResults();  // quiet background attempt too
+  afterSend();
+  alert("Google's form will open with your scores filled in.\n\nTap the purple SUBMIT button on that page. Then come back here.");
+  location.href=url;
 };
 function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
 document.getElementById("restoreBtn").onclick=()=>document.getElementById("restore").click();
