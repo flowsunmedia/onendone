@@ -351,6 +351,7 @@ head.addEventListener("change", e=>{ if(e.target.dataset.disc!==undefined && sta
 head.addEventListener("change", e=>{
   if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save(); if(state.view==="hole") renderHole(); }
   if(e.target.dataset.div!==undefined){ state.players[e.target.dataset.div].division=e.target.value; save(); if(state.view==="hole") renderHole(); }});
+head.addEventListener("focusin", e=>{ if(e.target.dataset.p!==undefined||e.target.dataset.disc!==undefined){ const el=e.target; setTimeout(()=>{ try{ el.select(); el.setSelectionRange(0,el.value.length); }catch(_){ } },0); } });
 head.addEventListener("focusout", e=>{ if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save(); } if(e.target.dataset.disc!==undefined){ state.players[e.target.dataset.disc].disc=e.target.value; save(); } });
 head.addEventListener("click", e=>{
   const i = e.target.dataset.remove; if(i===undefined) return;
@@ -454,7 +455,7 @@ function setScore(i,v){ if(v==="") delete state.players[i].scores[state.hole]; e
 document.getElementById("hvlist").addEventListener("click",e=>{
   const st=e.target.dataset.step; if(st===undefined) return;
   const i=e.target.dataset.p, cur=parseInt(state.players[i].scores[state.hole]);
-  const nv = isNaN(cur) ? HOLES[state.hole][2] + (+st) : Math.max(1,cur+(+st));
+  const nv = isNaN(cur) ? HOLES[state.hole][2] : Math.max(1,cur+(+st));
   setScore(i,nv);
 });
 document.getElementById("hvlist").addEventListener("input",e=>{
