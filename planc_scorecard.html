@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v13</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v14</p>
   <div class="meta">
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
     <label>Group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
@@ -486,13 +486,16 @@ function finalView(){
   let pnl=document.getElementById("finalPanel"); if(!pnl){ pnl=document.createElement("div"); pnl.id="finalPanel"; document.body.appendChild(pnl); }
   pnl.style.cssText="position:fixed;inset:0;background:#fff;z-index:60;overflow:hidden;display:flex;flex-direction:column;font-size:clamp(7px,1.9vw,15px)";
   const cell="text-align:center;padding:.35em .1em;border:1px solid #ccd;white-space:nowrap";
-  pnl.innerHTML=`<div style="background:var(--green);color:#fff;padding:.5em .8em;display:flex;align-items:center;gap:.6em;font-size:1.1em"><b style="color:#FFD866">★ ONE N DONE</b><span>${esc(state.event||"")}${state.startHole!==undefined?" · start hole "+(state.startHole+1):""} · ${new Date().toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</span><span style="flex:1"></span><span style="font-size:.85em;opacity:.9">turn phone sideways · screenshot</span><button id="finalClose" style="font-size:1em;padding:.3em .7em;background:#fff;color:var(--green)">Back</button></div>
+  pnl.innerHTML=`<div style="background:var(--green);color:#fff;padding:.5em .8em;display:flex;align-items:center;gap:.6em;font-size:1.1em"><b style="color:#FFD866">★ ONE N DONE</b><span>${esc(state.event||"")}${state.startHole!==undefined?" · start hole "+(state.startHole+1):""} · ${new Date().toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</span><span style="flex:1"></span><span style="font-size:.85em;opacity:.9">turn phone sideways · screenshot</span><button id="finalClose" style="font-size:1.1em;padding:.45em 1.1em;background:#B22234;color:#fff;font-weight:900;border-radius:.5em">‹ Back to scorecard</button></div>
   <div style="flex:1;overflow:auto;padding:.4em"><table style="width:100%;border-collapse:collapse;table-layout:fixed">
   <colgroup><col style="width:9%">${HOLES.map(()=>'<col>').join("")}<col style="width:4.2%"><col style="width:4.2%"><col style="width:4.6%"><col style="width:4.2%"></colgroup>
   <tr style="background:var(--green);color:#fff"><th style="${cell};text-align:left;padding-left:.3em">Player</th>${HOLES.map((h,i)=>`<th style="${cell};background:${i<18?"var(--green)":"var(--green-2)"}">${i+1}</th>`).join("")}<th style="${cell}">F</th><th style="${cell}">B</th><th style="${cell};background:#B22234">TOT</th><th style="${cell}">+/−</th></tr>
   <tr style="color:var(--muted);font-size:.85em"><td style="${cell};text-align:left;padding-left:.3em">Par</td>${HOLES.map(h=>`<td style="${cell}">${h[2]}</td>`).join("")}<td style="${cell}">${FRONT_PAR}</td><td style="${cell}">${BACK_PAR}</td><td style="${cell}">${FRONT_PAR+BACK_PAR}</td><td style="${cell}"></td></tr>
   ${rows.map(r=>`<tr><td style="${cell};text-align:left;padding-left:.3em;overflow:hidden;text-overflow:ellipsis;font-weight:800">${esc(r.p.name)}<div style="font-weight:500;font-size:.75em;color:var(--muted);overflow:hidden;text-overflow:ellipsis">${esc(r.p.division||"")}${r.p.disc?" · "+esc(r.p.disc):""}</div></td>${HOLES.map((h,i)=>{const v=parseInt(r.p.scores[i]); const bg=isNaN(v)?"":v<h[2]?"var(--under)":v>h[2]?"var(--over)":""; return `<td style="${cell};background:${bg};font-weight:600">${isNaN(v)?"":v}</td>`;}).join("")}<td style="${cell};font-weight:700">${r.pf?r.f:""}</td><td style="${cell};font-weight:700">${r.pb?r.b:""}</td><td style="${cell};font-weight:900;font-size:1.15em;background:#FDE2C4">${r.thru?r.t:""}</td><td style="${cell};font-weight:800;color:${r.d<0?"#1B4FB5":r.d>0?"#B85C00":"inherit"}">${r.thru?pm(r.d):""}</td></tr>`).join("")}</table></div>`;
-  document.getElementById("finalClose").onclick=()=>pnl.remove();
+  const close=()=>{ pnl.remove(); if(history.state&&history.state.final) history.back(); };
+  document.getElementById("finalClose").onclick=()=>{ pnl.remove(); if(history.state&&history.state.final) history.back(); };
+  try{ history.pushState({final:1},""); }catch(e){}
+  window.addEventListener("popstate",function h(){ const el=document.getElementById("finalPanel"); if(el) el.remove(); window.removeEventListener("popstate",h); });
 }
 document.getElementById("finalize").onclick=()=>{ save(); finalView(); };
 
