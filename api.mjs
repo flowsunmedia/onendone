@@ -53,6 +53,7 @@ export default async (req) => {
     const sh = Number(body.startHole);
     if (!(sh >= 0 && sh < HOLES)) return json({ error: "bad hole" }, 400);
     let g = d.groups.find(x => x.startHole === sh);
+    if (g && !body.force) return json({ error: "hole taken", group: g }, 409);
     if (!g) { g = { id: id(), startHole: sh, name: clean(body.name, 40) || ("Start hole " + (sh + 1)), createdAt: Date.now() }; d.groups.push(g); }
     if (body.name) g.name = clean(body.name, 40);
     if (Array.isArray(body.playerIds)) { d.players.forEach(p => { if (p.groupId === g.id) p.groupId = null; }); body.playerIds.forEach(pid => { const p = d.players.find(x => x.id === pid); if (p) p.groupId = g.id; }); }

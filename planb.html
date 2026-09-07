@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One N Done – Plan B Scorecard</title>
+<style>
+  :root{
+    --green:#1B2A5B; --green-2:#2E4A9E; --red:#B22234; --star:#F5F0DC; --orange:#F28C28; --orange-dk:#4A2600; --ink:#1A1A1A; --muted:#6B6B6B;
+    --line:#D9D9D9; --paper:#FFFFFF; --wash:#F4F6FB;
+    --tee-blue:#D6E4F5; --tee-orange:#FDE2C4; --tee-red:#E24B4A;
+    --under:#DDEBFF; --over:#F28C28;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--wash) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2790%27 height=%2790%27%3E%3Ctext x=%278%27 y=%2730%27 font-size=%2716%27 fill=%27%231B2A5B%27 fill-opacity=%270.10%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2752%27 y=%2774%27 font-size=%2711%27 fill=%27%23B22234%27 fill-opacity=%270.12%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:var(--ink);
+    font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px}
+  header{background:var(--green) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:18px 16px 16px}
+  .stripes{height:14px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
+  header h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
+  header h1::before,header h1::after{content:"★";color:#FFD866;margin:0 10px;font-size:22px;vertical-align:1px}
+  header h1::before{margin-left:0}
+  header p{margin:6px 0 0;font-size:13px;opacity:.95}
+  header p::before{content:"★ ★ ★  ";color:#FFD866;letter-spacing:2px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px}
+  .meta label{font-size:12px;opacity:.95;display:flex;flex-direction:column;gap:3px}
+  .meta input{border:2px solid var(--red);border-radius:6px;padding:7px 9px;font-size:15px;min-width:150px;font-family:inherit}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:var(--paper);border-bottom:3px solid var(--green);position:sticky;top:0;z-index:5;box-shadow:0 2px 0 var(--red)}
+  button{font-family:inherit;font-size:15px;font-weight:600;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;background:var(--red);color:#fff}
+  a.btn{display:inline-block;text-decoration:none;font-size:15px;font-weight:600;border-radius:8px;padding:9px 14px;background:#E4E9F7;color:var(--green)}
+  button.quiet{background:#E4E9F7;color:var(--green)}
+  button:focus-visible,input:focus-visible{outline:3px solid #7FB3FF;outline-offset:1px}
+  .wrap{overflow-x:auto;padding:0 0 24px}
+  table{border-collapse:separate;border-spacing:0;min-width:100%;background:var(--paper)}
+  th,td{border-bottom:1px solid var(--line);padding:0;text-align:center;height:44px;white-space:nowrap}
+  thead th{background:var(--green);color:#fff;font-weight:700;font-size:13px;position:sticky;top:0;z-index:3;vertical-align:top;border-bottom:3px solid var(--red)}
+  th.hole,td.hole{position:sticky;left:0;z-index:2;width:52px;min-width:52px;font-weight:700;background:var(--paper)}
+  thead th.hole{z-index:4;background:var(--green)}
+  td.basket{width:64px;min-width:64px;color:var(--muted)}
+  td.tee{width:100px;min-width:100px;font-size:14px}
+  td.ctp{width:62px;min-width:62px}
+  .badge{display:inline-block;background:var(--orange);color:var(--orange-dk);font-weight:800;font-size:13px;letter-spacing:.5px;padding:4px 8px;border-radius:6px}
+  tr.ctprow td.hole{background:var(--orange);color:var(--orange-dk)}
+  th.hole,td.hole{}
+  .hv-ctp{background:var(--orange);border:2px solid var(--orange-dk);border-radius:12px;padding:12px 14px;margin-top:10px;font-weight:700;font-size:16px;color:var(--orange-dk);display:flex;align-items:center;gap:10px}
+  .badge.big{font-size:16px;padding:6px 12px;background:var(--orange-dk);color:#fff}
+  td.par{width:44px;min-width:44px;font-weight:600}
+  td.tee.Blue{background:var(--tee-blue)} td.tee.Orange{background:var(--tee-orange)} td.tee.Red{background:var(--tee-red);color:#fff;font-weight:700}
+  th.player{min-width:88px;padding:5px 4px}
+  th.player .name{display:flex;gap:3px;align-items:center}
+  th.player input{width:100%;min-width:0;border:0;border-radius:5px;padding:6px;font-size:14px;font-weight:700;font-family:inherit;text-align:center}
+  th.player input.disc{font-weight:600;font-size:12px;padding:4px;margin-top:3px;background:#FFF3E0;color:var(--orange-dk);text-align:center}
+  th.player input.disc::placeholder{color:#B85C00;font-weight:500}
+  th.player select.div{width:100%;font-family:inherit;font-weight:600;font-size:12px;padding:4px 2px;margin-top:3px;border:0;border-radius:5px;background:#E4E9F7;color:var(--green)}
+  .pl .who .dv.disc{background:#FFF3E0;color:var(--orange-dk)}
+  .pl .who .dv{display:inline-block;background:#E4E9F7;color:var(--green);font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+  .lb-head{background:var(--green-2) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2740%27 height=%2740%27%3E%3Ctext x=%274%27 y=%2716%27 font-size=%2712%27 fill=%27%23ffffff%27 fill-opacity=%270.16%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2724%27 y=%2734%27 font-size=%278%27 fill=%27%23ffffff%27 fill-opacity=%270.16%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;font-weight:700;padding:8px 10px;margin-top:14px;border-radius:8px 8px 0 0;font-size:15px}
+  .lb-head:first-child{margin-top:0}
+  th.player input.dup{background:var(--orange);color:var(--orange-dk)}
+  th.player input.dup::after{content:"!"}
+  th.player .x{background:transparent;color:#fff;padding:2px 5px;font-size:16px;line-height:1;opacity:.75}
+  th.player .x:hover{opacity:1}
+  td.score input{width:100%;height:44px;border:0;background:transparent;font-size:18px;font-weight:600;text-align:center;font-family:inherit;color:var(--ink)}
+  td.score{border-left:1px solid var(--line)}
+  td.score.under{background:var(--under)} td.score.over{background:var(--over)} td.score.over input{color:var(--orange-dk)}
+  tr.section td{background:var(--green-2) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");border-left:8px solid var(--red);color:#fff;font-weight:700;text-align:left;padding-left:12px;height:34px;font-size:14px}
+  tr.section td::before{content:"★ ★ ★  ";color:#FFD866;letter-spacing:1px}
+  tr.section td.hole{background:var(--green-2)}
+  tr.total td{background:#EEF1F8;font-weight:700;height:40px}
+  tr.total td.hole{background:#EEF1F8}
+  tr.total td.label{text-align:right;padding-right:12px;color:var(--green)}
+  tr.total td.val{font-size:17px;border-left:1px solid var(--line)}
+  tr.grand td{background:var(--green);font-size:18px;color:#fff}
+  tr.grand td.hole{background:var(--green)}
+  tr.grand td.label{color:#FFD866}
+  .pm.under{color:#1B4FB5} .pm.over{color:#B85C00} .lb tr.lead td.pm{color:var(--orange-dk)}
+  .legend{padding:14px 16px;border-top:14px solid transparent;border-image:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px) 14;font-size:13px;color:var(--muted);line-height:1.5;max-width:70ch}
+  .legend span{display:inline-block;padding:1px 8px;border-radius:4px;color:var(--ink);margin-right:4px}
+  button.admin{display:none} body.admin button.admin{display:inline-block}
+  button.big{font-size:19px;padding:12px 20px;background:var(--orange);color:var(--orange-dk)}
+  body.signup #vSign{outline:3px solid var(--green)}
+  body.admin #adminBtn{background:var(--green);color:#FFD866}
+  .status{align-self:center;font-size:13px;color:var(--muted);margin-left:auto}
+  .status.warn{color:#B23A3A;font-weight:600}
+  .seg{display:inline-flex;border-radius:8px;overflow:hidden;background:#E4E9F7}
+  .seg button{border-radius:0;background:transparent;color:var(--green)}
+  .seg button.on{background:var(--green);color:#fff}
+  #signup{display:none;padding:14px 16px 30px;max-width:640px;margin:0 auto}
+  body.signup #signup{display:block} body.signup .wrap,body.signup .legend,body.signup #holeview,body.signup #board{display:none}
+  .su-form{background:var(--paper);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:6px solid var(--red)}
+  .su-form input,.su-form select{font-family:inherit;font-size:18px;padding:12px;border:2px solid var(--green);border-radius:10px;width:100%}
+  .su-form .full{grid-column:1/-1}
+  .su-form button{font-size:20px;padding:14px}
+  .su-list{background:var(--paper);border-radius:12px;margin-top:14px;overflow:hidden}
+  .su-list table{width:100%;border-collapse:collapse}
+  .su-list th{background:var(--green);color:#fff;text-align:left;padding:10px;font-size:15px}
+  .su-list td{padding:10px;border-bottom:1px solid var(--line);font-size:17px;text-align:left}
+  .su-list td.n{font-weight:800}
+  .su-list td.x button{padding:4px 10px;font-size:16px;background:#E4E9F7;color:var(--red)}
+  .su-count{font-size:22px;font-weight:900;color:var(--green);margin:14px 0 8px}
+  .su-count::before{content:"★ ";color:var(--red)}
+  .su-paste{margin-top:14px;background:var(--paper);border-radius:12px;padding:14px;border-top:6px solid var(--green)}
+  .su-paste textarea{width:100%;font-family:inherit;font-size:15px;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:90px}
+  .su-paste h3{margin:0 0 6px;font-size:17px;color:var(--green)}
+  .su-paste p{margin:0 0 8px;font-size:14px;color:var(--muted)}
+  .su-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  #board{display:none;padding:14px 16px 30px;max-width:640px;margin:0 auto}
+  body.board #board{display:block} body.board .wrap,body.board .legend{display:none}
+  .lb-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .lb{width:100%;border-collapse:collapse;background:var(--paper);border-radius:12px;overflow:hidden}
+  .lb th{background:var(--green);color:#fff;font-size:13px;font-weight:600;padding:8px 6px;text-align:left}
+  .lb td{padding:9px 6px;border-bottom:1px solid var(--line);font-size:15px}
+  .lb td.r{font-weight:800;width:36px;text-align:center}
+  .lb td.n{font-weight:700}
+  .lb td.g{color:var(--muted);font-size:13px}
+  .lb td.num{text-align:center;font-weight:700}
+  .lb tr.lead td{background:var(--orange);color:var(--orange-dk)}
+  .lb tr.lead td.g{color:var(--orange-dk)}
+  .lb tr.lead td.r::before{content:"★ ";color:var(--orange-dk)}
+  .st{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+  .st.done{background:var(--under);color:#1B4FB5} .st.play{background:var(--orange);color:var(--orange-dk)} .st.none{background:#EEE;color:#777}
+  .lb-sum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .lb-sum div{background:var(--paper);border-radius:10px;padding:8px 12px;font-size:14px;border-top:4px solid var(--red)}
+  .lb-sum div:nth-child(even){border-top-color:var(--green)}
+  .lb-sum b{font-size:20px;display:block;color:var(--green)}
+  .lb-note{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
+  #holeview{display:none;padding:14px 16px 30px;max-width:560px;margin:0 auto}
+  body.hole #holeview{display:block} body.hole .wrap,body.hole .legend{display:none}
+  body.board #holeview{display:none}
+  .hv-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .hv-nav button{min-width:96px}
+  #hvpos{font-weight:800;color:var(--green)}
+  #hvpos::before,#hvpos::after{content:" ★ ";color:var(--red)}
+  .hv-nav button:disabled{opacity:.35;cursor:default}
+  .hv-head{background:var(--paper);border-radius:12px;padding:14px 16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-left:8px solid var(--tee-blue);border-top:4px solid var(--red)}
+  .hv-head.Orange{border-left-color:var(--tee-orange)} .hv-head.Red{border-left-color:var(--tee-red)}
+  .hv-head .num{font-size:44px;font-weight:900;line-height:1;color:var(--green)}
+  .hv-head .num::before{content:"★ ";color:var(--red);font-size:26px;vertical-align:8px}
+  .hv-head .num small{font-size:15px;font-weight:600;color:var(--muted);margin-left:6px}
+  .hv-head .info{font-size:15px;color:var(--muted)} .hv-head .info b{color:var(--ink);font-size:17px}
+  .hv-order{font-size:13px;color:var(--muted);margin:14px 4px 6px}
+  .hv-order::before{content:"★ ";color:var(--red)}
+  .pl{background:var(--paper);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:2px solid transparent;border-left:6px solid var(--green)}
+  .pl:nth-child(even){border-left-color:var(--red)}
+  .pl.up{border-color:var(--red)}
+  .pl .who{flex:1;min-width:0}
+  .pl .who .n{font-weight:700;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pl .who .run{font-size:13px;color:var(--muted)}
+  .pl .who .up{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+  .pl .ctl{display:flex;align-items:center;gap:6px}
+  .pl .ctl button{width:44px;height:44px;font-size:24px;padding:0;border-radius:10px;background:#E4E9F7;color:var(--green)}
+  .pl .sc{width:56px;height:44px;font-size:26px;font-weight:800;text-align:center;border:0;border-radius:10px;background:var(--wash);font-family:inherit}
+  .pl .sc.under{background:var(--under)} .pl .sc.over{background:var(--over);color:var(--orange-dk)}
+  .pl .sc::placeholder{color:#BBB;font-weight:600}
+  .hv-done{text-align:center;color:var(--muted);font-size:14px;margin-top:14px}
+  @media print{ #board{display:none!important} body.board .wrap{display:block!important}
+  @media print{ html,body{background-image:none!important} .stripes{display:none} }
+  @media print{ td.score.over,tr.ctprow td.hole,.lb tr.lead td{-webkit-print-color-adjust:exact;print-color-adjust:exact} }
+  @media print{ .badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+    header,.bar{position:static}
+    .bar,th.player .x{display:none}
+    body{background:#fff} #holeview{display:none!important} body.hole .wrap{display:block!important}
+    th,td{height:26px;font-size:11px}
+    td.score input,th.player input{height:24px;font-size:12px}
+    tr.section td{background:#ccc!important;color:#000;-webkit-print-color-adjust:exact;background-image:none!important}
+    thead th{background:#ddd!important;color:#000;-webkit-print-color-adjust:exact}
+    td.tee,td.score,tr.total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>One N Done · Plan B</h1>
+  <p>Backup scorecard · works with no signal · 36 holes · Par 95</p>
+  <div class="meta">
+    <label>Tournament <span style="display:flex;gap:6px"><select id="tsel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:150px"></select><button id="tnew" style="padding:7px 10px">New</button><button id="tdel" class="quiet" style="padding:7px 10px" title="Delete this tournament">×</button></span></label>
+    <label>Date <input id="date" type="date"></label>
+    <label>Starting hole (pick first) <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
+    <label>Starting hole group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
+  </div>
+</header>
+<div class="stripes"></div>
+
+<div class="bar">
+  <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
+  <button id="add">+ Add player</button>
+  <button class="quiet" onclick="window.print()">Print / save as PDF</button>
+  <button id="send">Send results to admin</button>
+  <button class="quiet" id="backup">Save backup</button>
+  <button class="quiet" id="restoreBtn">Restore backup</button>
+  <input type="file" id="restore" accept=".json,application/json" style="display:none">
+  <button class="quiet" id="clear">Start new round</button>
+  <a class="btn" id="adminBtn" href="planb-admin.html">Admin</a>
+  <span class="status" id="status"></span>
+</div>
+
+<div id="holeview">
+  <div class="hv-nav"><button class="quiet" id="prev">‹ Previous</button><div id="hvpos"></div><button id="next">Next ›</button></div>
+  <div class="hv-head" id="hvhead"></div>
+  <div class="hv-order" id="hvorder"></div>
+  <div class="hv-ctp" id="hvctp"></div>
+  <div id="hvlist"></div>
+  <div class="hv-done" id="hvdone"></div>
+</div>
+
+<div class="wrap">
+  <table id="card">
+    <thead><tr id="head"></tr></thead>
+    <tbody id="body"></tbody>
+  </table>
+</div>
+
+<div class="legend">
+  <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
+  Baskets marked a/b/c are played more than once from different tees. Baskets 26 and 27 play red tee then blue tee.
+  CTP marks the 18 closest-to-pin holes. Leave a box blank if a hole hasn't been played yet; totals count only the holes you've entered.
+  Pick your group's starting hole at the top — the group name fills in by itself and Hole by hole starts there and wraps around. Under each player's name on the full card, pick their division and type the one disc they're throwing. Each tournament or round is saved separately: pick one at the top, or tap New to start another without touching the others. Tap Send results to admin whenever — sending never locks your scores, and you can send again later; the newest one counts. Scores save on this device automatically; Save backup also puts a copy in your files so you can restore it on any phone or computer.
+</div>
+
+<script>
+const HOLES = [
+ ["1","Blue",3],["2a","Blue",2],["2b","Orange flag",2],
+ ["4","Blue",3],["5","Blue (low)",3],["6","Blue",3],["7","Blue",3],["8","Blue",3],
+ ["9","Blue",3],["10","Blue",3],["11","Blue",3],
+ ["12a","Blue",2],["12b","Orange flag",2],["12c","Orange flag",2],
+ ["13","Blue",3],["14","Blue",3],["15","Blue",3],["16","Blue",3],["17","Blue",3],["18","Blue",3],
+ ["19a","Blue",2],["19b","Orange flag",2],
+ ["20a","Blue",3],["20b","Orange flag",2],
+ ["21a","Blue",3],["21b","Orange flag",2],
+ ["22a","Blue",3],["22b","Orange flag",2],
+ ["23a","Blue",3],["23b","Orange flag",2],
+ ["24","Blue",3],["25","Blue",3],
+ ["26","Red",2],["26","Blue",3],
+ ["27","Red",2],["27","Blue",3],
+];
+// Closest-to-pin holes (by basket): 1,2a,2b,4,5,6,7,8,9,10,11,12a,12b,12c,13,14,15,18
+const CTP = new Set([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,19]);
+const FRONT_PAR = HOLES.slice(0,18).reduce((s,h)=>s+h[2],0);
+const BACK_PAR  = HOLES.slice(18).reduce((s,h)=>s+h[2],0);
+const KEY = "discgolf-planb-old";
+const STORE = "discgolf-planb-v1";
+const ADMIN_PIN = "2727"; // change this before sending the file out
+
+let state = {date:"", event:"", ctp:{}, players:[{name:"Player 1",scores:{}},{name:"Player 2",scores:{}}]};
+
+// Storage is optional: works when the file is opened from a device, silently skipped otherwise.
+let store = {current:null, tournaments:{}};
+function newTournament(name){ const id="t"+Date.now().toString(36); store.tournaments[id]={id,name,created:new Date().toISOString(),data:{date:"",event:name,ctp:{},groups:[],players:[{name:"Player 1",scores:{}},{name:"Player 2",scores:{}}]}}; return id; }
+function load(){
+  try{
+    const raw=localStorage.getItem(STORE);
+    if(raw){ store=JSON.parse(raw); }
+    else { const old=localStorage.getItem(KEY); if(old){ const d=JSON.parse(old); const id=newTournament(d.event||"Tournament"); store.tournaments[id].data=d; store.current=id; } }
+  }catch(e){}
+  if(!store.current || !store.tournaments[store.current]) store.current=newTournament("Practice round");
+  state = store.tournaments[store.current].data;
+  ensureIds();
+}
+function switchTournament(id){ if(!store.tournaments[id]) return; store.current=id; state=store.tournaments[id].data; ensureIds(); build(); renderTournaments(); renderStart(); setView(state.view||"card"); }
+function startLabel(i){ return `Hole ${i+1} (basket ${HOLES[i][0]})`; }
+function autoName(){ return state.startHole===undefined ? "" : `Start hole ${state.startHole+1}`; }
+function renderStart(){
+  const sel=document.getElementById("startSel"); if(!sel) return;
+  sel.innerHTML=`<option value="">Pick starting hole…</option>`+HOLES.map((h,i)=>`<option value="${i}" ${state.startHole===i?"selected":""}>${startLabel(i)}</option>`).join("");
+}
+function holeSeq(){ const st=state.startHole||0; return HOLES.map((_,k)=>(st+k)%36); }
+function renderTournaments(){
+  const sel=document.getElementById("tsel"); if(!sel) return;
+  const list=Object.values(store.tournaments).sort((a,b)=>b.created.localeCompare(a.created));
+  sel.innerHTML=list.map(t=>`<option value="${t.id}" ${t.id===store.current?"selected":""}>${esc(t.name)}</option>`).join("");
+}
+let nextId=1;
+function ensureIds(){ state.players.forEach(p=>{ if(!p.id) p.id="p"+Date.now().toString(36)+(nextId++); }); if(!state.ctp) state.ctp={}; if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined||!HOLES[state.hole]) state.hole=state.startHole||0; if(!state.view) state.view="card"; }
+const DIVISIONS=["Kids","Beginners","Amateur","Advanced","Women","Pro","Masters","Grandmaster"];
+function allDivisions(){
+  const set=new Set(DIVISIONS);
+  state.players.forEach(p=>{ if(p.division) set.add(p.division.trim()); });
+  (state.groups||[]).forEach(g=>g.players.forEach(p=>{ if(p.division) set.add(p.division.trim()); }));
+  return [...set].sort((a,b)=>{const ia=DIVISIONS.indexOf(a),ib=DIVISIONS.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
+}
+function ctpCount(id){ return Object.values(state.ctp||{}).filter(v=>v===id).length; }
+function save(){
+  try{ if(store.current && store.tournaments[store.current]){ store.tournaments[store.current].data=state; } localStorage.setItem(STORE, JSON.stringify(store));
+    const st=document.getElementById("status"); if(st){ st.className="status"; st.textContent="Saved " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
+  }catch(e){
+    const st=document.getElementById("status"); if(st){ st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
+  }
+}
+function storageWorks(){ try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch(e){ return false; } }
+
+const head = document.getElementById("head");
+const body = document.getElementById("body");
+
+function teeClass(t){ return t.startsWith("Blue")?"Blue":t.startsWith("Orange")?"Orange":"Red"; }
+
+function dupNames(){ const c={}; state.players.forEach(p=>{const k=p.name.trim().toLowerCase(); if(k) c[k]=(c[k]||0)+1;}); return new Set(Object.keys(c).filter(k=>c[k]>1)); }
+function build(){
+  const dups=dupNames();
+  head.innerHTML = `<th class="hole">Hole</th><th>Basket</th><th>Tee</th><th>Par</th><th title="Closest to pin">CTP</th>` +
+    state.players.map((p,i)=>`<th class="player"><div class="name">
+      <input value="${esc(p.name)}" data-p="${i}" aria-label="Player ${i+1} name" class="${dups.has(p.name.trim().toLowerCase())?"dup":""}" title="${dups.has(p.name.trim().toLowerCase())?"This name is already on the card":""}">
+      <button class="x" data-remove="${i}" title="Remove player" aria-label="Remove ${esc(p.name)}">×</button></div>
+      <select class="div" data-div="${i}" aria-label="${esc(p.name)} division"><option value="">Division…</option>${allDivisions().map(d=>`<option value="${esc(d)}" ${p.division===d?"selected":""}>${esc(d)}</option>`).join("")}</select>
+      <input class="disc" value="${esc(p.disc||"")}" data-disc="${i}" placeholder="Disc" aria-label="${esc(p.name)} disc"></th>`).join("");
+
+  let rows = "";
+  const cols = 5 + state.players.length;
+  const section = t => `<tr class="section"><td class="hole"></td><td colspan="${cols-1}">${t}</td></tr>`;
+  const totalRow = (cls,label,par,key) => `<tr class="total ${cls}"><td class="hole"></td><td class="label" colspan="2">${label}</td><td>${par}</td><td></td>` +
+      state.players.map((_,i)=>`<td class="val" data-total="${key}" data-p="${i}"></td>`).join("") + `</tr>`;
+
+  HOLES.forEach((h,idx)=>{
+    if(idx===0) rows += section("Front 18");
+    if(idx===18) rows += totalRow("","Front 18",FRONT_PAR,"front") + section("Back 18");
+    rows += `<tr class="${CTP.has(idx)?"ctprow":""}"><td class="hole">${idx+1}</td><td class="basket">${h[0]}</td><td class="tee ${teeClass(h[1])}">${h[1]}</td><td class="par">${h[2]}</td><td class="ctp">${CTP.has(idx)?`<span class="badge">★ CTP</span>`:""}</td>` +
+      state.players.map((p,i)=>`<td class="score"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-h="${idx}" data-p="${i}" value="${p.scores[idx]??""}" aria-label="Hole ${idx+1}, ${esc(p.name)}"></td>`).join("") + `</tr>`;
+  });
+  rows += totalRow("","Back 18",BACK_PAR,"back");
+  rows += totalRow("grand","Total",FRONT_PAR+BACK_PAR,"total");
+  rows += totalRow("","Over / under par","","pm");
+  body.innerHTML = rows;
+  document.getElementById("date").value = state.date||"";
+  document.getElementById("event").value = state.event||"";
+  calc();
+}
+
+function calc(){
+  state.players.forEach((p,i)=>{
+    let f=0,b=0,pf=0,pb=0;
+    HOLES.forEach((h,idx)=>{
+      const v = parseInt(p.scores[idx]); const cell = body.querySelector(`input[data-h="${idx}"][data-p="${i}"]`)?.parentElement;
+      if(cell) cell.className = "score" + (isNaN(v)?"":v<h[2]?" under":v>h[2]?" over":"");
+      if(isNaN(v)) return;
+      if(idx<18){f+=v;pf+=h[2];} else {b+=v;pb+=h[2];}
+    });
+    const played = pf+pb>0;
+    const set=(k,txt,cls)=>{const el=body.querySelector(`td[data-total="${k}"][data-p="${i}"]`); el.textContent=txt; if(cls!==undefined) el.className="val pm "+cls;};
+    set("front", pf?f:"");
+    set("back",  pb?b:"");
+    set("total", played?f+b:"");
+    const diff = (f+b)-(pf+pb);
+    set("pm", played? (diff===0?"E":diff>0?"+"+diff:diff) : "", diff<0?"under":diff>0?"over":"");
+  });
+  save();
+}
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+
+head.addEventListener("input", e=>{
+  if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save(); }
+  if(e.target.dataset.disc!==undefined){ state.players[e.target.dataset.disc].disc=e.target.value; save(); }
+});
+head.addEventListener("change", e=>{ if(e.target.dataset.disc!==undefined && state.view==="hole") renderHole(); });
+head.addEventListener("change", e=>{
+  if(e.target.dataset.p!==undefined){ const n=e.target.value.trim().toLowerCase(); if(n && state.players.filter(p=>p.name.trim().toLowerCase()===n).length>1){ alert(`"${e.target.value.trim()}" is already on this card. If it's a different person, add a last initial.`); } build(); }
+  if(e.target.dataset.div!==undefined){ state.players[e.target.dataset.div].division=e.target.value; save(); if(state.view==="hole") renderHole(); }});
+head.addEventListener("click", e=>{
+  const i = e.target.dataset.remove; if(i===undefined) return;
+  if(state.players.length===1){ alert("Keep at least one player."); return; }
+  if(confirm(`Remove ${state.players[i].name}?`)){ state.players.splice(i,1); build(); if(state.view==="hole") renderHole(); }
+});
+body.addEventListener("input", e=>{
+  const {h,p} = e.target.dataset; if(h===undefined) return;
+  const v = e.target.value.replace(/\D/g,""); e.target.value=v;
+  if(v==="") delete state.players[p].scores[h]; else state.players[p].scores[h]=v;
+  calc();
+});
+// Enter / Go moves down to the next hole for the same player
+body.addEventListener("keydown", e=>{
+  if(e.key!=="Enter" || e.target.dataset.h===undefined) return;
+  e.preventDefault();
+  const next = body.querySelector(`input[data-h="${+e.target.dataset.h+1}"][data-p="${e.target.dataset.p}"]`);
+  if(next){ next.focus(); next.select(); }
+});
+document.getElementById("add").addEventListener("click", ()=>{
+  state.players.push({name:"Player "+(state.players.length+1),scores:{}}); ensureIds(); build();
+  if(state.view==="hole"){ renderHole(); }
+  head.querySelector(`input[data-p="${state.players.length-1}"]`).select();
+});
+document.getElementById("clear").addEventListener("click", ()=>{
+  if(confirm("Clear all scores and start a new round? Player names stay.")){ state.players.forEach(p=>p.scores={}); state.ctp={}; state.hole=0; build(); if(state.view==="hole") renderHole(); }
+});
+document.getElementById("date").addEventListener("input", e=>{state.date=e.target.value; save();});
+document.getElementById("startSel").addEventListener("change", e=>{
+  const prevAuto = !state.event || /^Start hole \d+$/.test(state.event) || state.event===store.tournaments[store.current].name;
+  state.startHole = e.target.value===""? undefined : +e.target.value;
+  if(prevAuto){ state.event=autoName(); document.getElementById("event").value=state.event; renderTournaments(); }
+  if(state.startHole!==undefined) state.hole=state.startHole;
+  save(); if(state.view==="hole") renderHole();
+});
+document.getElementById("tsel").addEventListener("change", e=>switchTournament(e.target.value));
+document.getElementById("tnew").onclick=()=>{
+  const name=prompt("Name for the new tournament or round (e.g. Practice run, Saturday tournament):"); if(!name) return;
+  save(); const id=newTournament(name.trim()); switchTournament(id); save();
+};
+document.getElementById("tdel").onclick=()=>{
+  const t=store.tournaments[store.current]; if(!t) return;
+  if(Object.keys(store.tournaments).length===1){ alert("Keep at least one tournament. Make a new one first, then delete this one."); return; }
+  if(!confirm(`Delete "${t.name}" and all its scores? This can't be undone.`)) return;
+  if(!confirm("Are you sure? Deleting: "+t.name)) return;
+  delete store.tournaments[store.current]; store.current=Object.keys(store.tournaments)[0]; save(); switchTournament(store.current);
+};
+document.getElementById("event").addEventListener("input", e=>{state.event=e.target.value; save();});
+
+
+// ---------- Hole-by-hole view ----------
+if(state.hole===undefined) state.hole=0;
+if(state.view===undefined) state.view="card";
+
+// Throwing order for a hole: lowest score on the previous hole tees first; ties keep the order from that hole.
+function orderFor(h){
+  let order = state.players.map((_,i)=>i);
+  const seq=holeSeq(), upto=seq.indexOf(h);
+  for(let k=1;k<=upto;k++){
+    const prev=seq[k-1];
+    const sc=i=>{const v=parseInt(state.players[i].scores[prev]); return isNaN(v)?Infinity:v;};
+    order = order.map((i,pos)=>({i,pos})).sort((a,b)=>sc(a.i)-sc(b.i)||a.pos-b.pos).map(o=>o.i);
+  }
+  return order;
+}
+function running(i,uptoHole){
+  let s=0,par=0; const seq=holeSeq(), upto=seq.indexOf(uptoHole);
+  for(let q=0;q<=upto;q++){const k=seq[q]; const v=parseInt(state.players[i].scores[k]); if(!isNaN(v)){s+=v;par+=HOLES[k][2];}}
+  return {s,par};
+}
+function renderHole(){
+  const h=state.hole, H=HOLES[h];
+  const seq=holeSeq(), pos=seq.indexOf(h);
+  document.getElementById("hvpos").textContent=`Hole ${h+1} · ${pos+1} of 36`;
+  document.getElementById("prev").disabled=pos===0;
+  document.getElementById("next").disabled=pos===35;
+  const head=document.getElementById("hvhead");
+  head.className="hv-head "+teeClass(H[1]);
+  head.innerHTML=`<div class="num">${h+1}<small>${h<18?"front":"back"}</small></div>
+    <div class="info">Basket <b>${H[0]}</b> &nbsp; Tee <b>${H[1]}</b> &nbsp; Par <b>${H[2]}</b></div>`;
+  const cb=document.getElementById("hvctp");
+  if(CTP.has(h)){ cb.style.display="block"; cb.innerHTML=`<span class="badge big">★ CTP</span> Closest to pin on this hole ★`; }
+  else { cb.style.display="none"; cb.innerHTML=""; }
+  const order=orderFor(h);
+  const upIdx = order.find(i=>state.players[i].scores[h]===undefined);
+  document.getElementById("hvorder").textContent = pos===0 ? "Throwing order (first hole: card order)" : "Throwing order — best score on the last hole goes first";
+  document.getElementById("hvlist").innerHTML = order.map((i,pos)=>{
+    const p=state.players[i], v=p.scores[h]??"", n=parseInt(v);
+    const r=running(i,h); const d=r.s-r.par;
+    const run = (r.par? `${r.s} thru ${Object.keys(p.scores).length} · ${d===0?"E":d>0?"+"+d:d}` : "no scores yet");
+    return `<div class="pl ${i===upIdx?"up":""}">
+      <div class="who"><div class="n">${pos+1}. ${esc(p.name)}${p.division?`<span class="dv">${esc(p.division)}</span>`:""}${p.disc?`<span class="dv disc">${esc(p.disc)}</span>`:""}${i===upIdx?'<span class="up">UP</span>':""}</div><div class="run">${run}</div></div>
+      <div class="ctl"><button data-step="-1" data-p="${i}" aria-label="minus">−</button>
+      <input class="sc ${isNaN(n)?"":n<H[2]?"under":n>H[2]?"over":""}" type="text" inputmode="numeric" maxlength="2" placeholder="${H[2]}" value="${v}" data-p="${i}" aria-label="${esc(p.name)} score">
+      <button data-step="1" data-p="${i}" aria-label="plus">+</button></div></div>`;
+  }).join("");
+  const left = state.players.filter(p=>p.scores[h]===undefined).length;
+  document.getElementById("hvdone").textContent = left? "" : (pos<35 ? "Everyone's in. Tap Next for the next hole." : "Round complete. Switch to Full card to see totals.");
+}
+function setScore(i,v){ if(v==="") delete state.players[i].scores[state.hole]; else state.players[i].scores[state.hole]=String(v); build(); renderHole(); }
+document.getElementById("hvlist").addEventListener("click",e=>{
+  const st=e.target.dataset.step; if(st===undefined) return;
+  const i=e.target.dataset.p, cur=parseInt(state.players[i].scores[state.hole]);
+  const nv = isNaN(cur) ? HOLES[state.hole][2] + (+st) : Math.max(1,cur+(+st));
+  setScore(i,nv);
+});
+document.getElementById("hvlist").addEventListener("input",e=>{
+  if(!e.target.classList.contains("sc")) return;
+  const v=e.target.value.replace(/\D/g,""); e.target.value=v;
+  const i=e.target.dataset.p; if(v==="") delete state.players[i].scores[state.hole]; else state.players[i].scores[state.hole]=v;
+  build(); // keeps card + storage in sync without re-rendering the box being typed in
+  document.getElementById("hvdone").textContent="";
+});
+document.getElementById("hvlist").addEventListener("change",()=>renderHole());
+document.getElementById("prev").onclick=()=>{const seq=holeSeq(),pos=seq.indexOf(state.hole); if(pos>0) state.hole=seq[pos-1]; save();renderHole();window.scrollTo(0,0);};
+document.getElementById("next").onclick=()=>{const seq=holeSeq(),pos=seq.indexOf(state.hole); if(pos<35) state.hole=seq[pos+1]; save();renderHole();window.scrollTo(0,0);};
+function setView(v){
+  if(v==="board"||v==="signup") v="card";
+  state.view=v; save();
+  document.body.classList.toggle("hole",v==="hole");
+  document.getElementById("vHole").classList.toggle("on",v==="hole");
+  document.getElementById("vCard").classList.toggle("on",v==="card");
+  if(v==="hole") renderHole();
+}
+document.getElementById("vHole").onclick=()=>setView("hole");
+document.getElementById("vCard").onclick=()=>setView("card");
+
+document.getElementById("backup").onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="planb-backup-"+(state.event||"round").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".json";
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+function backupFile(){
+  const name="planb-results-"+(state.event||"group").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".json";
+  return new File([JSON.stringify({...state, sentAt:new Date().toISOString()},null,1)],name,{type:"application/json"});
+}
+document.getElementById("send").onclick=async()=>{
+  const f=backupFile();
+  const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
+  if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can keep playing and send again later. Send now?")) return;
+  if(navigator.canShare && navigator.canShare({files:[f]})){
+    try{ await navigator.share({files:[f],title:"One N Done results",text:"One N Done results: "+(state.event||"our group")}); afterSend(); return; }catch(e){ if(e.name==="AbortError") return; }
+  }
+  document.getElementById("backup").click();
+  alert("Your phone couldn't open the share sheet, so the results file was downloaded instead. Send that file to the admin.");
+  afterSend();
+};
+function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
+document.getElementById("restoreBtn").onclick=()=>document.getElementById("restore").click();
+document.getElementById("restore").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.players) throw 0; if(confirm("Replace the current scorecard with this backup?")){ state=d; store.tournaments[store.current].data=state; ensureIds(); if(!state.groups) state.groups=[]; if(!state.signups) state.signups=[]; if(!state.cardId) state.cardId="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); if(state.hole===undefined) state.hole=0; save(); build(); renderTournaments(); renderStart(); setView(state.view||"card"); } }
+    catch(err){ alert("That file isn't a scorecard backup."); } e.target.value=""; };
+  r.readAsText(f);
+});
+window.addEventListener("beforeunload",e=>{ if(!storageWorks() && state.players.some(p=>Object.keys(p.scores).length)){ e.preventDefault(); e.returnValue=""; } });
+
+load(); build(); renderTournaments(); renderStart(); setView(state.view||"card");
+if(!storageWorks()){ const st=document.getElementById("status"); st.className="status warn"; st.textContent="Not saving on this device. Use Save backup."; }
+</script>
+</body>
+</html>
