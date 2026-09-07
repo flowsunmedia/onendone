@@ -184,7 +184,7 @@
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
   <button id="add">+ Add player</button>
   <button class="quiet" onclick="window.print()">Print / save as PDF</button>
-  <button id="send">Text results to admin</button>
+  <button id="send">Send results to admin</button>
   <button class="quiet" id="backup" style="display:none">Save backup</button>
   <button class="quiet" id="restoreBtn" style="display:none">Restore backup</button>
   <input type="file" id="restore" accept=".json,application/json" style="display:none">
@@ -211,7 +211,7 @@
 
 <div class="legend">
   <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
-  How it works: pick your starting hole, type each player's name, then tap scores (Hole by hole is easiest on a phone). Totals add up by themselves. Everything saves on this phone automatically. When your group is done, tap <b>Text results to admin</b> and send the text to the admin. Keep your paper card too.
+  How it works: pick your starting hole, type each player's name, then tap scores (Hole by hole is easiest on a phone). Totals add up by themselves. Everything saves on this phone automatically. When your group is done, tap <b>Send results to admin</b> — it goes straight to the admin. Keep your paper card too.
 </div>
 
 <script>
@@ -496,25 +496,34 @@ function resultsText(){
   lines.push("", "DATA:"+JSON.stringify({...state, sentAt:new Date().toISOString()}));
   return lines.join("\n");
 }
-function showResultsPanel(){
+const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLSdPHSRGSVvqb0POtJqPLKbXyjxlR-LraE2XCb2N7EPoWN88jw/formResponse", FORM_FIELD="entry.2146486507";
+async function submitResults(){
+  const txt=resultsText(); const fd=new URLSearchParams(); fd.set(FORM_FIELD,txt);
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),12000);
+  try{ await fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:fd.toString(),signal:ctl.signal}); clearTimeout(t); return true; }
+  catch(e){ clearTimeout(t); return false; }
+}
+function showResultsPanel(ok){
   let pnl=document.getElementById("resPanel");
   if(!pnl){ pnl=document.createElement("div"); pnl.id="resPanel"; pnl.style.cssText="position:fixed;inset:0;background:rgba(27,42,91,.6);z-index:50;display:flex;align-items:flex-end"; document.body.appendChild(pnl); }
   const txt=resultsText();
   pnl.innerHTML=`<div style="background:#fff;width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px">
-    <div style="font-size:20px;font-weight:900;color:var(--green);margin-bottom:6px">★ Your results</div>
-    <p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Tap <b>Text it</b> and send it to the admin. (Or Copy and paste it anywhere.)</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px"><button id="resCopy" style="flex:1;font-size:17px;padding:12px">Copy</button><a id="resSms" style="flex:2;text-align:center;font-size:19px;padding:12px;border-radius:8px;background:var(--red);color:#fff;font-weight:800;text-decoration:none" href="#">Text it ★</a><button id="resClose" class="quiet" style="font-size:17px;padding:12px">Close</button></div>
-    <textarea id="resTxt" readonly style="width:100%;min-height:200px;font-family:inherit;font-size:13px;padding:10px;border:2px solid var(--line);border-radius:10px"></textarea></div>`;
-  const ta=document.getElementById("resTxt"); ta.value=txt;
+    <div style="font-size:22px;font-weight:900;color:${ok?"var(--green)":"#B22234"};margin-bottom:6px">${ok?"★ Sent to the admin ★":"Couldn't reach the admin"}</div>
+    <p style="margin:0 0 10px;font-size:15px;line-height:1.5">${ok?"Your scores went through. You can send again any time — the newest one counts.":"No signal right now. Tap <b>Text it</b> to send by message, or try again when you have bars."}</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px">${ok?"":`<button id="resRetry" style="flex:1;font-size:17px;padding:12px">Try again</button>`}<a id="resSms" style="flex:1;text-align:center;font-size:17px;padding:12px;border-radius:8px;background:var(--green);color:#fff;font-weight:700;text-decoration:none" href="#">Text it</a><button id="resClose" class="quiet" style="font-size:17px;padding:12px">${ok?"Done":"Close"}</button></div>
+    <details><summary style="font-size:13px;color:var(--muted)">Show what was sent</summary><textarea id="resTxt" readonly style="width:100%;min-height:160px;font-family:inherit;font-size:13px;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:8px"></textarea></details></div>`;
+  document.getElementById("resTxt").value=txt;
   document.getElementById("resSms").href="sms:?&body="+encodeURIComponent(txt);
-  document.getElementById("resCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.focus(); ta.select(); document.execCommand("copy"); } document.getElementById("resCopy").textContent="Copied ✓"; afterSend(); };
   document.getElementById("resClose").onclick=()=>pnl.remove();
-  ta.onclick=()=>{ ta.focus(); ta.select(); };
+  const r=document.getElementById("resRetry"); if(r) r.onclick=()=>document.getElementById("send").click();
 }
-document.getElementById("send").onclick=()=>{
+document.getElementById("send").onclick=async()=>{
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
   if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can send again later. Send now?")) return;
-  showResultsPanel();
+  const b=document.getElementById("send"); const label=b.textContent; b.textContent="Sending…"; b.disabled=true;
+  const ok=await submitResults();
+  b.textContent=label; b.disabled=false;
+  if(ok) afterSend(); showResultsPanel(ok);
 };
 function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
 document.getElementById("restoreBtn").onclick=()=>document.getElementById("restore").click();
