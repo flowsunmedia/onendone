@@ -184,8 +184,8 @@
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
   <button id="add">+ Add player</button>
   <button class="quiet" onclick="window.print()">Print / save as PDF</button>
-  <button id="send">Send results to admin</button>
-  <button class="quiet" id="backup">Save backup</button>
+  <button id="send">Text results to admin</button>
+  <button class="quiet" id="backup" style="display:none">Save backup</button>
   <button class="quiet" id="restoreBtn" style="display:none">Restore backup</button>
   <input type="file" id="restore" accept=".json,application/json" style="display:none">
   <button class="quiet" id="clear">Start new round</button>
@@ -211,7 +211,7 @@
 
 <div class="legend">
   <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
-  How it works: pick your starting hole, type each player's name, then tap scores (Hole by hole is easiest on a phone). Totals add up by themselves. Everything saves on this phone automatically. When your group is done, tap <b>Send results to admin</b> and text the file to the admin. Keep your paper card too.
+  How it works: pick your starting hole, type each player's name, then tap scores (Hole by hole is easiest on a phone). Totals add up by themselves. Everything saves on this phone automatically. When your group is done, tap <b>Text results to admin</b> and send the text to the admin. Keep your paper card too.
 </div>
 
 <script>
@@ -502,8 +502,8 @@ function showResultsPanel(){
   const txt=resultsText();
   pnl.innerHTML=`<div style="background:#fff;width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px">
     <div style="font-size:20px;font-weight:900;color:var(--green);margin-bottom:6px">★ Your results</div>
-    <p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Send this to the admin any way you like. Copy it, or tap Text it.</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px"><button id="resCopy" style="flex:1;font-size:17px;padding:12px">Copy</button><a id="resSms" style="flex:1;text-align:center;font-size:17px;padding:12px;border-radius:8px;background:var(--green);color:#fff;font-weight:600;text-decoration:none" href="#">Text it</a><button id="resClose" class="quiet" style="font-size:17px;padding:12px">Close</button></div>
+    <p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Tap <b>Text it</b> and send it to the admin. (Or Copy and paste it anywhere.)</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px"><button id="resCopy" style="flex:1;font-size:17px;padding:12px">Copy</button><a id="resSms" style="flex:2;text-align:center;font-size:19px;padding:12px;border-radius:8px;background:var(--red);color:#fff;font-weight:800;text-decoration:none" href="#">Text it ★</a><button id="resClose" class="quiet" style="font-size:17px;padding:12px">Close</button></div>
     <textarea id="resTxt" readonly style="width:100%;min-height:200px;font-family:inherit;font-size:13px;padding:10px;border:2px solid var(--line);border-radius:10px"></textarea></div>`;
   const ta=document.getElementById("resTxt"); ta.value=txt;
   document.getElementById("resSms").href="sms:?&body="+encodeURIComponent(txt);
@@ -511,13 +511,9 @@ function showResultsPanel(){
   document.getElementById("resClose").onclick=()=>pnl.remove();
   ta.onclick=()=>{ ta.focus(); ta.select(); };
 }
-document.getElementById("send").onclick=async()=>{
+document.getElementById("send").onclick=()=>{
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
   if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can send again later. Send now?")) return;
-  const f=backupFile();
-  if(navigator.canShare && navigator.canShare({files:[f]})){
-    try{ await navigator.share({files:[f],title:"One N Done results",text:"One N Done results: "+(state.event||"our group")}); afterSend(); return; }catch(e){ if(e.name==="AbortError") return; }
-  }
   showResultsPanel();
 };
 function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
