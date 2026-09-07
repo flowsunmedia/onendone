@@ -502,7 +502,8 @@ function submitResults(){
     const txt=resultsText();
     let fr=document.getElementById("gfFrame"); if(!fr){ fr=document.createElement("iframe"); fr.id="gfFrame"; fr.name="gfFrame"; fr.style.display="none"; document.body.appendChild(fr); }
     const f=document.createElement("form"); f.method="POST"; f.action=FORM_URL; f.target="gfFrame"; f.style.display="none";
-    const i=document.createElement("input"); i.type="hidden"; i.name=FORM_FIELD; i.value=txt; f.appendChild(i);
+    const add=(n,v)=>{ const i=document.createElement("input"); i.type="hidden"; i.name=n; i.value=v; f.appendChild(i); };
+    add(FORM_FIELD,txt); add("fvv","1"); add("pageHistory","0"); add("fbzx",String(-Math.floor(Math.random()*1e18))); add("submissionTimestamp","-1");
     document.body.appendChild(f);
     let done=false; const finish=ok=>{ if(done) return; done=true; f.remove(); res(ok); };
     fr.onload=()=>finish(true);
