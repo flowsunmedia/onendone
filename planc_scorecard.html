@@ -489,16 +489,36 @@ function backupFile(){
   const name="one-n-done-results-"+(state.event||"group").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".json";
   return new File([JSON.stringify({...state, sentAt:new Date().toISOString()},null,1)],name,{type:"application/json"});
 }
+function resultsText(){
+  const lines=["One N Done results — "+(state.event||"group")+(state.date?" — "+state.date:"")];
+  state.players.forEach(p=>{ let sc=0,par=0,thru=0; HOLES.forEach((h,i)=>{const v=parseInt(p.scores[i]); if(!isNaN(v)){sc+=v;par+=h[2];thru++;}}); const d=sc-par; lines.push(`${p.name}${p.division?" ("+p.division+")":""}${p.disc?" ["+p.disc+"]":""}: ${thru?sc+" ("+(d===0?"E":d>0?"+"+d:d)+")"+(thru<36?" thru "+thru:""):"no scores"}`); });
+  lines.push("", "Holes: "+state.players.map(p=>p.name+" "+HOLES.map((_,i)=>p.scores[i]??"-").join(",")).join(" | "));
+  lines.push("", "DATA:"+JSON.stringify({...state, sentAt:new Date().toISOString()}));
+  return lines.join("\n");
+}
+function showResultsPanel(){
+  let pnl=document.getElementById("resPanel");
+  if(!pnl){ pnl=document.createElement("div"); pnl.id="resPanel"; pnl.style.cssText="position:fixed;inset:0;background:rgba(27,42,91,.6);z-index:50;display:flex;align-items:flex-end"; document.body.appendChild(pnl); }
+  const txt=resultsText();
+  pnl.innerHTML=`<div style="background:#fff;width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px">
+    <div style="font-size:20px;font-weight:900;color:var(--green);margin-bottom:6px">★ Your results</div>
+    <p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Send this to the admin any way you like. Copy it, or tap Text it.</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px"><button id="resCopy" style="flex:1;font-size:17px;padding:12px">Copy</button><a id="resSms" style="flex:1;text-align:center;font-size:17px;padding:12px;border-radius:8px;background:var(--green);color:#fff;font-weight:600;text-decoration:none" href="#">Text it</a><button id="resClose" class="quiet" style="font-size:17px;padding:12px">Close</button></div>
+    <textarea id="resTxt" readonly style="width:100%;min-height:200px;font-family:inherit;font-size:13px;padding:10px;border:2px solid var(--line);border-radius:10px"></textarea></div>`;
+  const ta=document.getElementById("resTxt"); ta.value=txt;
+  document.getElementById("resSms").href="sms:?&body="+encodeURIComponent(txt);
+  document.getElementById("resCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.focus(); ta.select(); document.execCommand("copy"); } document.getElementById("resCopy").textContent="Copied ✓"; afterSend(); };
+  document.getElementById("resClose").onclick=()=>pnl.remove();
+  ta.onclick=()=>{ ta.focus(); ta.select(); };
+}
 document.getElementById("send").onclick=async()=>{
-  const f=backupFile();
   const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
-  if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can keep playing and send again later. Send now?")) return;
+  if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can send again later. Send now?")) return;
+  const f=backupFile();
   if(navigator.canShare && navigator.canShare({files:[f]})){
     try{ await navigator.share({files:[f],title:"One N Done results",text:"One N Done results: "+(state.event||"our group")}); afterSend(); return; }catch(e){ if(e.name==="AbortError") return; }
   }
-  document.getElementById("backup").click();
-  alert("Your phone couldn't open the share sheet, so the results file was downloaded instead. Send that file to the admin.");
-  afterSend();
+  showResultsPanel();
 };
 function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
 document.getElementById("restoreBtn").onclick=()=>document.getElementById("restore").click();

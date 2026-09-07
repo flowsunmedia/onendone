@@ -115,7 +115,8 @@
   <section id="groups">
     <div class="sum" id="gSum"></div>
     <div id="gList"></div>
-    <div class="row"><button id="addGroups">＋ Add groups' results (files)</button><button class="quiet" id="clearGroups">Remove added groups</button></div>
+    <div class="row"><button id="addGroups">＋ Add groups' results (files)</button><button id="pasteBtn">＋ Paste results text</button></div>
+    <div class="row"><button class="quiet" id="clearGroups">Remove added groups</button></div>
     <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
     <div class="note">Assign each group its starting hole with the dropdown on its card. Groups come in from scorekeepers' result files, from this phone's own card, or you can make one from sign-ups (＋ New group). Re-adding a group's file replaces its scores but keeps your edits.</div>
   </section>
@@ -333,6 +334,17 @@ $("newGroup").onclick=()=>{
 };
 
 $("addGroups").onclick=()=>$("groupFiles").click();
+function importResultsObj(d,fallbackLabel){ if(!d||!d.players) return false;
+  const label=d.event||(d.startHole!=null?"Start hole "+(d.startHole+1):fallbackLabel||"Group");
+  const g={label,players:d.players,startHole:d.startHole,when:d.sentAt||new Date().toISOString(),cardId:d.cardId||null};
+  const key=g.cardId||("l:"+label); const k=state.groups.findIndex(x=>(x.cardId||("l:"+x.label))===key); if(k>=0) state.groups[k]=g; else state.groups.push(g); return true; }
+$("pasteBtn").onclick=()=>{
+  sheet(`<h2>Paste results</h2><p class="note">Paste the whole text a scorekeeper sent you (it has a DATA: line at the bottom).</p><textarea id="pasteTxt" style="min-height:160px"></textarea><div class="row"><button class="big" id="pasteGo">Add</button></div><div class="row"><button class="quiet" id="pasteNo">Cancel</button></div>`);
+  $("pasteNo").onclick=closeSheet;
+  $("pasteGo").onclick=()=>{ const t=$("pasteTxt").value; let n=0; const re=/DATA:(\{[\s\S]*?\})(?=\s*(?:$|One N Done results))/g; let m; while((m=re.exec(t))){ try{ if(importResultsObj(JSON.parse(m[1]))) n++; }catch(e){} }
+    if(!n){ const i=t.indexOf("DATA:"); if(i>=0){ try{ if(importResultsObj(JSON.parse(t.slice(i+5).trim()))) n++; }catch(e){} } }
+    if(!n){ alert("Couldn't find results in that text. Make sure the DATA: part is included."); return; } save(); closeSheet(); renderAll(); alert("Added "+n+" group"+(n>1?"s":"")+"."); };
+};
 $("groupFiles").addEventListener("change",e=>{
   const files=[...e.target.files]; let done=0,n=0;
   files.forEach(f=>{ const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.players){
