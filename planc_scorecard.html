@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v10</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v11</p>
   <div class="meta">
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
     <label>Group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
@@ -478,16 +478,15 @@ function finalView(){
   const rows=state.players.map(p=>{ let f=0,b=0,pf=0,pb=0,thru=0; HOLES.forEach((h,i)=>{const v=parseInt(p.scores[i]); if(isNaN(v)) return; thru++; if(i<18){f+=v;pf+=h[2];} else {b+=v;pb+=h[2];}}); const t=f+b, d=t-(pf+pb); return {p,f,b,t,d,thru,pf,pb}; });
   const pm=d=>d===0?"E":d>0?"+"+d:String(d);
   let pnl=document.getElementById("finalPanel"); if(!pnl){ pnl=document.createElement("div"); pnl.id="finalPanel"; document.body.appendChild(pnl); }
-  pnl.style.cssText="position:fixed;inset:0;background:#fff;z-index:60;overflow:auto;padding:0 0 40px";
-  pnl.innerHTML=`<div style="background:var(--green);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-size:22px;font-weight:900">★ ONE N DONE ★</div><div style="font-size:14px">${esc(state.event||"")}${state.startHole!==undefined?" · started hole "+(state.startHole+1):""} · ${new Date().toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div></div><button id="finalClose" class="quiet">Back</button></div>
-  <div style="padding:12px 12px 4px;font-size:13px;color:var(--muted)">Take a screenshot of this page and hand it in with your paper card.</div>
-  <table style="width:100%;border-collapse:collapse;font-size:16px;margin-top:6px"><tr style="background:#EEF1F8"><th style="text-align:left;padding:10px">Player</th><th>Div</th><th>Front</th><th>Back</th><th>Total</th><th>+/−</th></tr>
-  ${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:10px;font-weight:800">${esc(r.p.name)}<div style="font-size:12px;font-weight:500;color:var(--muted)">${esc(r.p.disc||"")}</div></td><td style="text-align:center">${esc(r.p.division||"")}</td><td style="text-align:center;font-weight:700">${r.pf?r.f:""}</td><td style="text-align:center;font-weight:700">${r.pb?r.b:""}</td><td style="text-align:center;font-size:22px;font-weight:900;color:var(--green)">${r.thru?r.t:""}</td><td style="text-align:center;font-weight:800;color:${r.d<0?"#1B4FB5":r.d>0?"#B85C00":"inherit"}">${r.thru?pm(r.d):""}${r.thru&&r.thru<36?`<div style="font-size:11px;color:var(--muted)">thru ${r.thru}</div>`:""}</td></tr>`).join("")}</table>
-  <div style="padding:14px 12px 4px;font-weight:800;color:var(--green)">Hole by hole</div>
-  <div style="overflow-x:auto;padding:0 12px"><table style="border-collapse:collapse;font-size:13px"><tr><th style="text-align:left;padding:4px 6px">Hole</th>${HOLES.map((h,i)=>`<th style="padding:4px 5px;background:${i<18?"#EEF1F8":"#FDE2C4"}">${i+1}</th>`).join("")}</tr><tr><td style="padding:4px 6px;color:var(--muted)">Par</td>${HOLES.map(h=>`<td style="text-align:center;color:var(--muted)">${h[2]}</td>`).join("")}</tr>
-  ${state.players.map(p=>`<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px;font-weight:700;white-space:nowrap">${esc(p.name)}</td>${HOLES.map((h,i)=>{const v=parseInt(p.scores[i]); const bg=isNaN(v)?"":v<h[2]?"var(--under)":v>h[2]?"var(--over)":""; return `<td style="text-align:center;padding:4px 5px;background:${bg}">${isNaN(v)?"·":v}</td>`;}).join("")}</tr>`).join("")}</table></div>`;
+  pnl.style.cssText="position:fixed;inset:0;background:#fff;z-index:60;overflow:hidden;display:flex;flex-direction:column;font-size:clamp(7px,1.9vw,15px)";
+  const cell="text-align:center;padding:.35em .1em;border:1px solid #ccd;white-space:nowrap";
+  pnl.innerHTML=`<div style="background:var(--green);color:#fff;padding:.5em .8em;display:flex;align-items:center;gap:.6em;font-size:1.1em"><b style="color:#FFD866">★ ONE N DONE</b><span>${esc(state.event||"")}${state.startHole!==undefined?" · start hole "+(state.startHole+1):""} · ${new Date().toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</span><span style="flex:1"></span><span style="font-size:.85em;opacity:.9">turn phone sideways · screenshot</span><button id="finalClose" style="font-size:1em;padding:.3em .7em;background:#fff;color:var(--green)">Back</button></div>
+  <div style="flex:1;overflow:auto;padding:.4em"><table style="width:100%;border-collapse:collapse;table-layout:fixed">
+  <colgroup><col style="width:9%">${HOLES.map(()=>'<col>').join("")}<col style="width:4.2%"><col style="width:4.2%"><col style="width:4.6%"><col style="width:4.2%"></colgroup>
+  <tr style="background:var(--green);color:#fff"><th style="${cell};text-align:left;padding-left:.3em">Player</th>${HOLES.map((h,i)=>`<th style="${cell};background:${i<18?"var(--green)":"var(--green-2)"}">${i+1}</th>`).join("")}<th style="${cell}">F</th><th style="${cell}">B</th><th style="${cell};background:#B22234">TOT</th><th style="${cell}">+/−</th></tr>
+  <tr style="color:var(--muted);font-size:.85em"><td style="${cell};text-align:left;padding-left:.3em">Par</td>${HOLES.map(h=>`<td style="${cell}">${h[2]}</td>`).join("")}<td style="${cell}">${FRONT_PAR}</td><td style="${cell}">${BACK_PAR}</td><td style="${cell}">${FRONT_PAR+BACK_PAR}</td><td style="${cell}"></td></tr>
+  ${rows.map(r=>`<tr><td style="${cell};text-align:left;padding-left:.3em;overflow:hidden;text-overflow:ellipsis;font-weight:800">${esc(r.p.name)}<div style="font-weight:500;font-size:.75em;color:var(--muted);overflow:hidden;text-overflow:ellipsis">${esc(r.p.division||"")}${r.p.disc?" · "+esc(r.p.disc):""}</div></td>${HOLES.map((h,i)=>{const v=parseInt(r.p.scores[i]); const bg=isNaN(v)?"":v<h[2]?"var(--under)":v>h[2]?"var(--over)":""; return `<td style="${cell};background:${bg};font-weight:600">${isNaN(v)?"":v}</td>`;}).join("")}<td style="${cell};font-weight:700">${r.pf?r.f:""}</td><td style="${cell};font-weight:700">${r.pb?r.b:""}</td><td style="${cell};font-weight:900;font-size:1.15em;background:#FDE2C4">${r.thru?r.t:""}</td><td style="${cell};font-weight:800;color:${r.d<0?"#1B4FB5":r.d>0?"#B85C00":"inherit"}">${r.thru?pm(r.d):""}</td></tr>`).join("")}</table></div>`;
   document.getElementById("finalClose").onclick=()=>pnl.remove();
-  window.scrollTo(0,0);
 }
 document.getElementById("finalize").onclick=()=>{ save(); finalView(); };
 
