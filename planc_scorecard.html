@@ -171,9 +171,8 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v9</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v10</p>
   <div class="meta">
-        <label>Date <input id="date" type="date"></label>
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
     <label>Group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
   </div>
@@ -183,14 +182,10 @@
 <div class="bar">
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
   <button id="add">+ Add player</button>
-  <button class="quiet" onclick="window.print()">Print / save as PDF</button>
-  <button id="send">Send results to admin</button>
-  <button class="quiet" id="backup" style="display:none">Save backup</button>
-  <button class="quiet" id="restoreBtn" style="display:none">Restore backup</button>
-  <input type="file" id="restore" accept=".json,application/json" style="display:none">
+  <button id="finalize" style="background:var(--green);color:#FFD866">★ Finalize</button>
   <button class="quiet" id="clear">Start new round</button>
-  
   <span class="status" id="status"></span>
+  <input type="file" id="restore" style="display:none">
 </div>
 
 <div id="holeview">
@@ -211,7 +206,7 @@
 
 <div class="legend">
   <span style="background:var(--tee-blue)">Blue</span><span style="background:var(--tee-orange)">Orange flag</span><span style="background:var(--tee-red);color:#fff">Red</span>
-  How it works: pick your starting hole, type each player's name, then tap scores (Hole by hole is easiest on a phone). Totals add up by themselves. Everything saves on this phone automatically. When your group is done, tap <b>Send results to admin</b> — it goes straight to the admin. Keep your paper card too.
+  Pick your starting hole, type names, tap scores (Hole by hole is easiest). Totals add up by themselves and everything saves on your phone. When your group is done, tap <b>★ Finalize</b>, screenshot it, and hand it in with your paper card.
 </div>
 
 <script>
@@ -316,7 +311,7 @@ function build(){
   rows += totalRow("grand","Total",FRONT_PAR+BACK_PAR,"total");
   rows += totalRow("","Over / under par","","pm");
   body.innerHTML = rows;
-  document.getElementById("date").value = state.date||"";
+  
   document.getElementById("event").value = state.event||"";
   calc();
 }
@@ -379,7 +374,7 @@ document.getElementById("add").addEventListener("click", ()=>{
 document.getElementById("clear").addEventListener("click", ()=>{
   if(confirm("Clear all scores and start a new round? Player names stay.")){ state.players.forEach(p=>p.scores={}); state.ctp={}; state.hole=0; build(); if(state.view==="hole") renderHole(); }
 });
-document.getElementById("date").addEventListener("input", e=>{state.date=e.target.value; save();});
+
 document.getElementById("startSel").addEventListener("change", e=>{
   const prevAuto = !state.event || /^Start hole \d+$/.test(state.event) || state.event===store.tournaments[store.current].name;
   state.startHole = e.target.value===""? undefined : +e.target.value;
@@ -479,69 +474,23 @@ function setView(v){
 document.getElementById("vHole").onclick=()=>setView("hole");
 document.getElementById("vCard").onclick=()=>setView("card");
 
-document.getElementById("backup").onclick=()=>{
-  const blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="one-n-done-backup-"+(state.event||"round").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".json";
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-};
-function backupFile(){
-  const name="one-n-done-results-"+(state.event||"group").replace(/[^a-z0-9]+/gi,"-")+"-"+new Date().toISOString().slice(0,10)+".json";
-  return new File([JSON.stringify({...state, sentAt:new Date().toISOString()},null,1)],name,{type:"application/json"});
+function finalView(){
+  const rows=state.players.map(p=>{ let f=0,b=0,pf=0,pb=0,thru=0; HOLES.forEach((h,i)=>{const v=parseInt(p.scores[i]); if(isNaN(v)) return; thru++; if(i<18){f+=v;pf+=h[2];} else {b+=v;pb+=h[2];}}); const t=f+b, d=t-(pf+pb); return {p,f,b,t,d,thru,pf,pb}; });
+  const pm=d=>d===0?"E":d>0?"+"+d:String(d);
+  let pnl=document.getElementById("finalPanel"); if(!pnl){ pnl=document.createElement("div"); pnl.id="finalPanel"; document.body.appendChild(pnl); }
+  pnl.style.cssText="position:fixed;inset:0;background:#fff;z-index:60;overflow:auto;padding:0 0 40px";
+  pnl.innerHTML=`<div style="background:var(--green);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-size:22px;font-weight:900">★ ONE N DONE ★</div><div style="font-size:14px">${esc(state.event||"")}${state.startHole!==undefined?" · started hole "+(state.startHole+1):""} · ${new Date().toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div></div><button id="finalClose" class="quiet">Back</button></div>
+  <div style="padding:12px 12px 4px;font-size:13px;color:var(--muted)">Take a screenshot of this page and hand it in with your paper card.</div>
+  <table style="width:100%;border-collapse:collapse;font-size:16px;margin-top:6px"><tr style="background:#EEF1F8"><th style="text-align:left;padding:10px">Player</th><th>Div</th><th>Front</th><th>Back</th><th>Total</th><th>+/−</th></tr>
+  ${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:10px;font-weight:800">${esc(r.p.name)}<div style="font-size:12px;font-weight:500;color:var(--muted)">${esc(r.p.disc||"")}</div></td><td style="text-align:center">${esc(r.p.division||"")}</td><td style="text-align:center;font-weight:700">${r.pf?r.f:""}</td><td style="text-align:center;font-weight:700">${r.pb?r.b:""}</td><td style="text-align:center;font-size:22px;font-weight:900;color:var(--green)">${r.thru?r.t:""}</td><td style="text-align:center;font-weight:800;color:${r.d<0?"#1B4FB5":r.d>0?"#B85C00":"inherit"}">${r.thru?pm(r.d):""}${r.thru&&r.thru<36?`<div style="font-size:11px;color:var(--muted)">thru ${r.thru}</div>`:""}</td></tr>`).join("")}</table>
+  <div style="padding:14px 12px 4px;font-weight:800;color:var(--green)">Hole by hole</div>
+  <div style="overflow-x:auto;padding:0 12px"><table style="border-collapse:collapse;font-size:13px"><tr><th style="text-align:left;padding:4px 6px">Hole</th>${HOLES.map((h,i)=>`<th style="padding:4px 5px;background:${i<18?"#EEF1F8":"#FDE2C4"}">${i+1}</th>`).join("")}</tr><tr><td style="padding:4px 6px;color:var(--muted)">Par</td>${HOLES.map(h=>`<td style="text-align:center;color:var(--muted)">${h[2]}</td>`).join("")}</tr>
+  ${state.players.map(p=>`<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px;font-weight:700;white-space:nowrap">${esc(p.name)}</td>${HOLES.map((h,i)=>{const v=parseInt(p.scores[i]); const bg=isNaN(v)?"":v<h[2]?"var(--under)":v>h[2]?"var(--over)":""; return `<td style="text-align:center;padding:4px 5px;background:${bg}">${isNaN(v)?"·":v}</td>`;}).join("")}</tr>`).join("")}</table></div>`;
+  document.getElementById("finalClose").onclick=()=>pnl.remove();
+  window.scrollTo(0,0);
 }
-function resultsText(){
-  const lines=["One N Done results — "+(state.event||"group")+(state.date?" — "+state.date:"")];
-  state.players.forEach(p=>{ let sc=0,par=0,thru=0; HOLES.forEach((h,i)=>{const v=parseInt(p.scores[i]); if(!isNaN(v)){sc+=v;par+=h[2];thru++;}}); const d=sc-par; lines.push(`${p.name}${p.division?" ("+p.division+")":""}${p.disc?" ["+p.disc+"]":""}: ${thru?sc+" ("+(d===0?"E":d>0?"+"+d:d)+")"+(thru<36?" thru "+thru:""):"no scores"}`); });
-  lines.push("", "Holes: "+state.players.map(p=>p.name+" "+HOLES.map((_,i)=>p.scores[i]??"-").join(",")).join(" | "));
-  lines.push("", "DATA:"+JSON.stringify({...state, sentAt:new Date().toISOString()}));
-  return lines.join("\n");
-}
-const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLScw9lAo-KDyDHkKtH6cjgHbLFckrIjVk6mGy879XOdJdRtA8w/formResponse", FORM_FIELD="entry.1353910040";
-function submitResults(){
-  return new Promise(res=>{
-    const txt=resultsText();
-    let fr=document.getElementById("gfFrame"); if(!fr){ fr=document.createElement("iframe"); fr.id="gfFrame"; fr.name="gfFrame"; fr.style.display="none"; document.body.appendChild(fr); }
-    const f=document.createElement("form"); f.method="POST"; f.action=FORM_URL; f.target="gfFrame"; f.style.display="none";
-    const add=(n,v)=>{ const i=document.createElement("input"); i.type="hidden"; i.name=n; i.value=v; f.appendChild(i); };
-    add(FORM_FIELD,txt); add("fvv","1"); add("pageHistory","0"); add("fbzx",String(-Math.floor(Math.random()*1e18))); add("submissionTimestamp","-1");
-    document.body.appendChild(f);
-    try{ const fd=new URLSearchParams(); fd.set(FORM_FIELD,txt); fd.set("fvv","1"); fd.set("pageHistory","0"); fd.set("fbzx",String(-Math.floor(Math.random()*1e18))); fd.set("submissionTimestamp","-1"); fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:fd.toString()}).catch(()=>{}); }catch(e){}
-    try{ const q=new URLSearchParams(); q.set(FORM_FIELD,txt); q.set("fvv","1"); q.set("pageHistory","0"); q.set("fbzx",String(-Math.floor(Math.random()*1e18))); q.set("submissionTimestamp","-1"); q.set("submit","Submit");
-      const getUrl=FORM_URL+"?"+q.toString(); if(getUrl.length<7500){ const fr2=document.createElement("iframe"); fr2.style.display="none"; fr2.src=getUrl; document.body.appendChild(fr2); setTimeout(()=>fr2.remove(),15000); }
-      if(navigator.sendBeacon){ const q2=new URLSearchParams(q); q2.delete("submit"); navigator.sendBeacon(FORM_URL,new Blob([q2.toString()],{type:"application/x-www-form-urlencoded"})); } }catch(e){}
-    let done=false; const finish=ok=>{ if(done) return; done=true; f.remove(); res(ok); };
-    fr.onload=()=>finish(true);
-    setTimeout(()=>finish(navigator.onLine!==false),2500);
-    try{ f.submit(); }catch(e){ finish(false); }
-  });
-}
-function showResultsPanel(ok){
-  let pnl=document.getElementById("resPanel");
-  if(!pnl){ pnl=document.createElement("div"); pnl.id="resPanel"; pnl.style.cssText="position:fixed;inset:0;background:rgba(27,42,91,.6);z-index:50;display:flex;align-items:flex-end"; document.body.appendChild(pnl); }
-  const txt=resultsText();
-  pnl.innerHTML=`<div style="background:#fff;width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px">
-    <div style="font-size:22px;font-weight:900;color:${ok?"var(--green)":"#B22234"};margin-bottom:6px">${ok?"★ Sent to the admin ★":"No signal — not sent"}</div>
-    <p style="margin:0 0 10px;font-size:15px;line-height:1.5">${ok?"Your scores went through. You can send again any time — the newest one counts.":"Try again when you have bars, or download your results and give the file to the admin."}</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px">${ok?"":`<button id="resRetry" style="flex:1;font-size:17px;padding:12px">Try again</button><button id="resDl" class="quiet" style="flex:1;font-size:17px;padding:12px">Download</button>`}<button id="resClose" class="quiet" style="flex:1;font-size:17px;padding:12px">${ok?"Done":"Close"}</button></div>
-    <details><summary style="font-size:13px;color:var(--muted)">Show what was sent</summary><textarea id="resTxt" readonly style="width:100%;min-height:160px;font-family:inherit;font-size:13px;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:8px"></textarea></details></div>`;
-  document.getElementById("resTxt").value=txt;
-  document.getElementById("resClose").onclick=()=>pnl.remove();
-  const r=document.getElementById("resRetry"); if(r) r.onclick=()=>document.getElementById("send").click();
-  const dl=document.getElementById("resDl"); if(dl) dl.onclick=()=>{ const blob=new Blob([txt],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="one-n-done-results-"+(state.event||"group").replace(/[^a-z0-9]+/gi,"-")+".txt"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
-}
-document.getElementById("send").onclick=()=>{
-  const unfinished=state.players.filter(p=>Object.keys(p.scores).length<36).map(p=>p.name);
-  if(unfinished.length && !confirm("Heads up: not everyone has all 36 holes in yet ("+unfinished.join(", ")+").\n\nThat's fine — you can send again later. Send now?")) return;
-  save();
-  const txt=resultsText();
-  const url=FORM_URL.replace("/formResponse","/viewform")+"?usp=pp_url&"+FORM_FIELD+"="+encodeURIComponent(txt);
-  submitResults();  // quiet background attempt too
-  afterSend();
-  alert("Google's form will open with your scores filled in.\n\nTap the purple SUBMIT button on that page. Then come back here.");
-  location.href=url;
-};
-function afterSend(){ const st=document.getElementById("status"); st.className="status"; st.textContent="Sent. Keep playing — send again anytime and the newest one counts."; }
-document.getElementById("restoreBtn").onclick=()=>document.getElementById("restore").click();
+document.getElementById("finalize").onclick=()=>{ save(); finalView(); };
+
 document.getElementById("restore").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
