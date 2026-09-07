@@ -116,9 +116,9 @@
     <div class="sum" id="gSum"></div>
     <div id="gList"></div>
     <div class="card" style="padding:14px;border-left-color:var(--red)"><div style="font-weight:800;font-size:18px;color:var(--navy)">Results from Google Sheet</div>
-      <input id="sheetUrl" placeholder="Paste the Sheet's published CSV link here (once)" style="margin:8px 0">
-      <button class="big" id="loadSheet">⟳ Load all results</button>
-      <div class="note" id="sheetNote">In your Google Sheet: File → Share → Publish to web → choose "Comma-separated values (.csv)" → Publish → copy that link and paste it above. After that it's one tap.</div></div>
+      <input id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTNDDLxpvDg-5trNRM_MrAj1Z3wjrqRaJqxJcLmjtlgqJ5MEqxC4CzaMeDX1m1DPGAL1dk5aPWyzaUV/pub?output=csv" style="display:none">
+      <button class="big" id="loadSheet" style="margin-top:10px">⟳ Load all results</button>
+      <div class="note" id="sheetNote">Pulls every scorecard players have sent. Tap again any time for the latest.</div></div>
     <div class="row"><button class="quiet" id="addGroups">＋ Add result files</button><button class="quiet" id="pasteBtn">＋ Paste results text</button></div>
     <div class="row"><button class="quiet" id="clearGroups">Remove added groups</button></div>
     <input type="file" id="groupFiles" accept=".json,application/json" multiple style="display:none">
@@ -197,7 +197,7 @@ function renderT(){ const list=Object.values(store.tournaments).sort((a,b)=>b.cr
 $("tsel").onchange=e=>{ store.current=e.target.value; save(); load(); renderAll(); };
 
 const isAdmin=()=>{ try{ return sessionStorage.getItem("dg-admin")==="1"; }catch(e){ return false; } };
-function setAdmin(on){ try{ on?sessionStorage.setItem("dg-admin","1"):sessionStorage.removeItem("dg-admin"); }catch(e){} document.body.classList.toggle("locked",!on); if(on) renderAll(); }
+function setAdmin(on){ try{ on?sessionStorage.setItem("dg-admin","1"):sessionStorage.removeItem("dg-admin"); }catch(e){} document.body.classList.toggle("locked",!on); if(on){ renderAll(); setTimeout(()=>{ try{ $("loadSheet").click(); }catch(e){} },300); } }
 $("unlock").onclick=()=>{ if($("pin").value===ADMIN_PIN){ $("pin").value=""; setAdmin(true); } else { alert("Wrong PIN."); $("pin").value=""; } };
 $("pin").addEventListener("keydown",e=>{ if(e.key==="Enter") $("unlock").click(); });
 $("lockBtn").onclick=()=>setAdmin(false);
@@ -340,7 +340,7 @@ $("newGroup").onclick=()=>{
 $("addGroups").onclick=()=>$("groupFiles").click();
 function parseCSV(t){ const rows=[]; let row=[],cell="",q=false; for(let i=0;i<t.length;i++){ const c=t[i]; if(q){ if(c=='"'){ if(t[i+1]=='"'){cell+='"';i++;} else q=false; } else cell+=c; } else { if(c=='"') q=true; else if(c==','){row.push(cell);cell="";} else if(c=='\n'||c=='\r'){ if(c=='\r'&&t[i+1]=='\n') i++; row.push(cell); rows.push(row); row=[]; cell=""; } else cell+=c; } } if(cell!==""||row.length){ row.push(cell); rows.push(row);} return rows; }
 function extractResults(text){ const out=[]; let i=0; while((i=text.indexOf("DATA:",i))>=0){ let j=i+5, depth=0, inStr=false, esc=false, start=j; for(;j<text.length;j++){ const c=text[j]; if(inStr){ if(esc) esc=false; else if(c=="\\") esc=true; else if(c=='"') inStr=false; } else { if(c=='"') inStr=true; else if(c=='{') depth++; else if(c=='}'){ depth--; if(depth===0){ j++; break; } } } } try{ out.push(JSON.parse(text.slice(start,j))); }catch(e){} i=j; } return out; }
-$("sheetUrl").value=localStorage.getItem("ond-sheet-url")||"";
+
 $("loadSheet").onclick=async()=>{
   const url=$("sheetUrl").value.trim(); if(!url){ alert("Paste the Sheet's published CSV link first."); return; }
   localStorage.setItem("ond-sheet-url",url); const b=$("loadSheet"); b.textContent="Loading…"; b.disabled=true;
