@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v7</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v8</p>
   <div class="meta">
         <label>Date <input id="date" type="date"></label>
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
@@ -506,6 +506,9 @@ function submitResults(){
     add(FORM_FIELD,txt); add("fvv","1"); add("pageHistory","0"); add("fbzx",String(-Math.floor(Math.random()*1e18))); add("submissionTimestamp","-1");
     document.body.appendChild(f);
     try{ const fd=new URLSearchParams(); fd.set(FORM_FIELD,txt); fd.set("fvv","1"); fd.set("pageHistory","0"); fd.set("fbzx",String(-Math.floor(Math.random()*1e18))); fd.set("submissionTimestamp","-1"); fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:fd.toString()}).catch(()=>{}); }catch(e){}
+    try{ const q=new URLSearchParams(); q.set(FORM_FIELD,txt); q.set("fvv","1"); q.set("pageHistory","0"); q.set("fbzx",String(-Math.floor(Math.random()*1e18))); q.set("submissionTimestamp","-1"); q.set("submit","Submit");
+      const getUrl=FORM_URL+"?"+q.toString(); if(getUrl.length<7500){ const fr2=document.createElement("iframe"); fr2.style.display="none"; fr2.src=getUrl; document.body.appendChild(fr2); setTimeout(()=>fr2.remove(),15000); }
+      if(navigator.sendBeacon){ const q2=new URLSearchParams(q); q2.delete("submit"); navigator.sendBeacon(FORM_URL,new Blob([q2.toString()],{type:"application/x-www-form-urlencoded"})); } }catch(e){}
     let done=false; const finish=ok=>{ if(done) return; done=true; f.remove(); res(ok); };
     fr.onload=()=>finish(true);
     setTimeout(()=>finish(navigator.onLine!==false),2500);
