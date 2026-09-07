@@ -361,13 +361,18 @@ function calc(){
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 
+head.addEventListener("focusout", e=>{ if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save(); } if(e.target.dataset.disc!==undefined){ state.players[e.target.dataset.disc].disc=e.target.value; save(); } });
 head.addEventListener("input", e=>{
   if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save(); }
   if(e.target.dataset.disc!==undefined){ state.players[e.target.dataset.disc].disc=e.target.value; save(); }
 });
 head.addEventListener("change", e=>{ if(e.target.dataset.disc!==undefined && state.view==="hole") renderHole(); });
 head.addEventListener("change", e=>{
-  if(e.target.dataset.p!==undefined){ const n=e.target.value.trim().toLowerCase(); if(n && state.players.filter(p=>p.name.trim().toLowerCase()===n).length>1){ alert(`"${e.target.value.trim()}" is already on this card. If it's a different person, add a last initial.`); } build(); }
+  if(e.target.dataset.p!==undefined){ state.players[e.target.dataset.p].name=e.target.value; save();
+    const n=e.target.value.trim().toLowerCase(); const dup=n && state.players.filter(p=>p.name.trim().toLowerCase()===n).length>1;
+    if(dup) alert(`"${e.target.value.trim()}" is already on this card. If it's a different person, add a last initial.`);
+    head.querySelectorAll('input[data-p]').forEach(inp=>{ const v=inp.value.trim().toLowerCase(); inp.classList.toggle("dup", !!v && state.players.filter(p=>p.name.trim().toLowerCase()===v).length>1); });
+    if(state.view==="hole") renderHole(); }
   if(e.target.dataset.div!==undefined){ state.players[e.target.dataset.div].division=e.target.value; save(); if(state.view==="hole") renderHole(); }});
 head.addEventListener("click", e=>{
   const i = e.target.dataset.remove; if(i===undefined) return;
