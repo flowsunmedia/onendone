@@ -3,87 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>One N Done – Sign up</title>
+<title>One N Done – Get the scorecard</title>
 <style>
-  :root{--navy:#1B2A5B;--red:#B22234;--gold:#FFD866;--orange:#F28C28;--wash:#F4F6FB}
+  :root{--navy:#1B2A5B;--red:#B22234;--gold:#FFD866;--wash:#F4F6FB}
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--wash) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2790%27 height=%2790%27%3E%3Ctext x=%278%27 y=%2730%27 font-size=%2716%27 fill=%27%231B2A5B%27 fill-opacity=%270.10%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2752%27 y=%2774%27 font-size=%2711%27 fill=%27%23B22234%27 fill-opacity=%270.12%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#1A1A1A}
-  header{background:var(--navy) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.28%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:22px 16px;text-align:center}
-  header h1{margin:0;font-size:30px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
-  header h1::before,header h1::after{content:"★";color:var(--gold);margin:0 10px;font-size:24px;vertical-align:2px}
+  body{margin:0;font-family:"Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--wash);color:#1A1A1A;font-size:18px}
+  header{background:var(--navy) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Ctext x=%276%27 y=%2726%27 font-size=%2722%27 fill=%27%23ffffff%27 fill-opacity=%270.25%27%3E%E2%98%85%3C/text%3E%3Ctext x=%2734%27 y=%2752%27 font-size=%2714%27 fill=%27%23ffffff%27 fill-opacity=%270.25%27%3E%E2%98%85%3C/text%3E%3C/svg%3E");color:#fff;padding:24px 16px;text-align:center}
+  header h1{margin:0;font-size:32px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+  header h1::before,header h1::after{content:"★";color:var(--gold);margin:0 10px}
   header p{margin:6px 0 0;font-size:16px;opacity:.95}
   .stripes{height:14px;background:repeating-linear-gradient(90deg,#B22234 0 14px,#fff 14px 28px)}
-  main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
-  label{display:block;font-size:20px;font-weight:800;color:var(--navy);margin:18px 0 8px}
-  label span{color:var(--red)}
-  input,select{width:100%;font-family:inherit;font-size:22px;padding:14px;border:3px solid var(--navy);border-radius:12px;background:#fff}
-  input:focus,select:focus{outline:4px solid var(--orange);outline-offset:2px}
-  button{width:100%;margin-top:26px;font-family:inherit;font-size:24px;font-weight:900;padding:18px;border:0;border-radius:14px;background:var(--red);color:#fff;cursor:pointer;letter-spacing:.5px}
-  a.btn{width:100%;font-family:inherit;font-size:24px;font-weight:900;padding:18px;border-radius:14px;background:var(--red);color:#fff;text-decoration:none;letter-spacing:.5px}
-  button.quiet{background:#E4E9F7;color:var(--navy);font-size:18px;padding:14px;margin-top:12px}
-  .err{color:var(--red);font-weight:700;font-size:16px;margin-top:8px;display:none}
-  #done{display:none;background:#fff;border:3px solid var(--navy);border-radius:14px;padding:18px;margin-top:20px;text-align:center}
-  #done h2{margin:0 0 6px;font-size:26px;color:var(--navy)}
-  #done .card{font-size:20px;font-weight:700;margin:10px 0;color:#333}
-  #done p{font-size:17px;line-height:1.5;margin:8px 0}
-  .step{background:var(--orange);color:#4A2600;font-weight:800;font-size:18px;padding:12px;border-radius:10px;margin-top:10px}
+  main{max-width:520px;margin:0 auto;padding:22px 16px 50px}
+  a.big{display:block;text-align:center;background:var(--red);color:#fff;text-decoration:none;font-size:26px;font-weight:900;padding:22px;border-radius:16px;margin:12px 0}
+  a.big.blue{background:var(--navy)}
+  a.big small{display:block;font-size:14px;font-weight:600;opacity:.9;margin-top:4px}
+  .box{background:#fff;border-radius:16px;padding:16px 18px;margin-top:18px;border-left:10px solid var(--navy)}
+  .box h2{margin:0 0 8px;font-size:20px;color:var(--navy)}
+  .box ol{margin:0;padding-left:22px;line-height:1.6}
+  .box p{margin:6px 0;line-height:1.5}
 </style>
 </head>
 <body>
-<header><h1>One N Done</h1><p>Player sign-up · one disc, one round</p></header>
+<header><h1>One N Done</h1><p>Disc golf scorecard · 36 holes on 27 baskets</p></header>
 <div class="stripes"></div>
 <main>
-  <div id="form">
-    <label>Your name <span>*</span></label>
-    <input id="name" type="text" autocomplete="name" placeholder="First and last name">
-    <label>The one disc you're throwing <span>*</span></label>
-    <input id="disc" type="text" placeholder="e.g. Innova Destroyer">
-    <label>Your division <span>*</span></label>
-    <select id="div">
-      <option value="">Pick one…</option>
-      <option>Kids</option><option>Beginners</option><option>Amateur</option><option>Advanced</option>
-      <option>Women</option><option>Pro</option><option>Masters</option><option>Grandmaster</option>
-    </select>
-    <div class="err" id="err">Please fill in all three.</div>
-    <button id="go">Sign me up ★</button>
+  <a class="big" href="planc_scorecard.html">Open the scorecard ★<small>Tap this. It saves itself on your phone.</small></a>
+  <a class="big blue" href="planc_scorecard.html" download="one_n_done_scorecard.html">Download the file<small>Keeps a copy in your Files / Downloads</small></a>
+
+  <div class="box">
+    <h2>iPhone</h2>
+    <ol>
+      <li>Tap <b>Open the scorecard</b>.</li>
+      <li>Tap the share button <b>⎋</b> → <b>Add to Home Screen</b>. Now it's an app icon.</li>
+    </ol>
+    <p>Or tap <b>Download the file</b>, then open it from the Files app.</p>
   </div>
-  <div id="done">
-    <h2>★ You're signed up ★</h2>
-    <div class="card" id="summary"></div>
-    <div class="step">You're on the list</div>
-    <p>The tournament admin will put you in a group and tell you your starting hole at check-in. Your name, disc, and division are what they'll go by — need to fix something? Tap Edit.</p>
-    <a class="btn" href="card.html" style="display:block;text-align:center;margin-top:14px">Open the scorecard ★</a>
-    <button class="quiet" id="editMe">Edit my sign-up</button>
-    <button class="quiet" id="again">Sign up another player</button>
+  <div class="box">
+    <h2>Android</h2>
+    <ol>
+      <li>Tap <b>Open the scorecard</b>.</li>
+      <li>Chrome menu <b>⋮</b> → <b>Add to Home screen</b>.</li>
+    </ol>
+    <p>Or tap <b>Download the file</b> and open it from Downloads.</p>
+  </div>
+  <div class="box" style="border-left-color:var(--red)">
+    <h2>How to use it</h2>
+    <ol>
+      <li>Pick your <b>starting hole</b>.</li>
+      <li>Type each player's <b>name</b>.</li>
+      <li>Tap scores as you go. <b>Hole by hole</b> is easiest on a phone.</li>
+      <li>When your group finishes, tap <b>Send results to admin</b>.</li>
+    </ol>
+    <p>Keep your paper card too — the admin checks both.</p>
   </div>
 </main>
-<script>
-const $=id=>document.getElementById(id);
-const EVENT=(new URLSearchParams(location.search).get("event")||"onendone"); try{ localStorage.setItem("ond-event",EVENT); }catch(e){}
-let me=null; try{ me=JSON.parse(localStorage.getItem("ond-me")||"null"); }catch(e){}
-const editing=new URLSearchParams(location.search).get("edit")==="1";
-if(me){ $("name").value=me.name||""; $("disc").value=me.disc||""; $("div").value=me.division||""; if(!editing){ $("go").textContent="Update my sign-up ★"; } else { $("go").textContent="Save changes ★"; } }
-async function api(body){ const r=await fetch("/api?event="+encodeURIComponent(EVENT),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)}); const j=await r.json().catch(()=>({})); if(!r.ok) throw j; return j; }
-$("go").onclick=async()=>{
-  const n=$("name").value.trim(), d=$("disc").value.trim(), v=$("div").value;
-  if(!n||!d||!v){ $("err").textContent="Please fill in all three."; $("err").style.display="block"; return; }
-  $("err").style.display="none"; $("go").disabled=true; $("go").textContent="Signing up…";
-  try{
-    let r;
-    if(me&&me.id){ r=await api({action:"update",playerId:me.id,name:n,disc:d,division:v}); if(!r.player){ throw {error:"no player"}; } }
-    else { r=await api({action:"signup",name:n,disc:d,division:v}); }
-    me=r.player; localStorage.setItem("ond-me",JSON.stringify(me));
-    $("summary").textContent=`${me.name} · ${me.disc||"no disc"} · ${me.division||"no division"}`;
-    $("form").style.display="none"; $("done").style.display="block"; window.scrollTo(0,0);
-  }catch(err){
-    if(err.error==="taken"){ $("err").textContent=`"${n}" is already signed up. If that's you, you're all set. If it's someone else, add a last initial.`; $("err").style.display="block";  }
-    else if(err.error==="no player"){ me=null; localStorage.removeItem("ond-me"); $("err").textContent="Your old sign-up was cleared. Tap again to sign up fresh."; $("err").style.display="block"; $("go").textContent="Sign me up ★"; }
-    else { $("err").textContent="Couldn't reach the sign-up server. Check your signal and try again."; $("err").style.display="block"; }
-  }
-  $("go").disabled=false; if($("go").textContent==="Signing up…") $("go").textContent="Sign me up ★";
-};
-$("editMe").onclick=()=>{ $("done").style.display="none"; $("form").style.display="block"; $("go").textContent="Save changes ★"; };
-$("again").onclick=()=>{ me=null; localStorage.removeItem("ond-me"); $("name").value="";$("disc").value="";$("div").value=""; $("done").style.display="none"; $("form").style.display="block"; $("go").textContent="Sign me up ★"; };
-</script>
 </body>
 </html>
