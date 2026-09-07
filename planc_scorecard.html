@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v7</p>
   <div class="meta">
         <label>Date <input id="date" type="date"></label>
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
@@ -505,6 +505,7 @@ function submitResults(){
     const add=(n,v)=>{ const i=document.createElement("input"); i.type="hidden"; i.name=n; i.value=v; f.appendChild(i); };
     add(FORM_FIELD,txt); add("fvv","1"); add("pageHistory","0"); add("fbzx",String(-Math.floor(Math.random()*1e18))); add("submissionTimestamp","-1");
     document.body.appendChild(f);
+    try{ const fd=new URLSearchParams(); fd.set(FORM_FIELD,txt); fd.set("fvv","1"); fd.set("pageHistory","0"); fd.set("fbzx",String(-Math.floor(Math.random()*1e18))); fd.set("submissionTimestamp","-1"); fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:fd.toString()}).catch(()=>{}); }catch(e){}
     let done=false; const finish=ok=>{ if(done) return; done=true; f.remove(); res(ok); };
     fr.onload=()=>finish(true);
     setTimeout(()=>finish(navigator.onLine!==false),2500);
