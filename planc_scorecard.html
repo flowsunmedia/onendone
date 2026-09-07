@@ -171,7 +171,7 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v11</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v13</p>
   <div class="meta">
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
     <label>Group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
@@ -372,7 +372,13 @@ document.getElementById("add").addEventListener("click", ()=>{
   head.querySelector(`input[data-p="${state.players.length-1}"]`).select();
 });
 document.getElementById("clear").addEventListener("click", ()=>{
-  if(confirm("Clear all scores and start a new round? Player names stay.")){ state.players.forEach(p=>p.scores={}); state.ctp={}; state.hole=0; build(); if(state.view==="hole") renderHole(); }
+  if(!confirm("Start a new round?\n\nDid you ★ Finalize and screenshot this one first?")) return;
+  if(!confirm("ARE YOU SURE?\n\nThis will DELETE all the scores on this card.\n\nTap OK only if you're really sure.")) return;
+  try{ const arch=JSON.parse(localStorage.getItem("ond-archive")||"[]"); arch.push({when:new Date().toISOString(),data:JSON.parse(JSON.stringify(state))}); localStorage.setItem("ond-archive",JSON.stringify(arch.slice(-5))); }catch(e){}
+  window.__undo=JSON.parse(JSON.stringify(state));
+  state.players.forEach(p=>p.scores={}); state.ctp={}; state.hole=state.startHole||0; build(); if(state.view==="hole") renderHole();
+  const st=document.getElementById("status"); st.innerHTML='Round cleared. <a href="#" id="undoBtn" style="color:var(--red);font-weight:800">Undo</a>';
+  document.getElementById("undoBtn").onclick=e=>{ e.preventDefault(); if(window.__undo){ state.players=window.__undo.players; state.ctp=window.__undo.ctp||{}; state.hole=window.__undo.hole||0; window.__undo=null; build(); if(state.view==="hole") renderHole(); st.textContent="Restored."; } };
 });
 
 document.getElementById("startSel").addEventListener("change", e=>{
