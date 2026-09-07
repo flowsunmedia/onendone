@@ -82,7 +82,8 @@
   .status{align-self:center;font-size:13px;color:var(--muted);margin-left:auto}
   .status.warn{color:#B23A3A;font-weight:600}
   .seg{display:inline-flex;border-radius:8px;overflow:hidden;background:#E4E9F7}
-  .seg button{border-radius:0;background:transparent;color:var(--green)}
+  .seg button{border-radius:0;background:transparent;color:var(--green);font-size:18px;padding:13px 16px}
+  #add{font-size:18px;padding:13px 18px}
   .seg button.on{background:var(--green);color:#fff}
   #signup{display:none;padding:14px 16px 30px;max-width:640px;margin:0 auto}
   body.signup #signup{display:block} body.signup .wrap,body.signup .legend,body.signup #holeview,body.signup #board{display:none}
@@ -171,10 +172,13 @@
 <body>
 <header>
   <h1>One N Done</h1>
-  <p>Scorecard · works with no signal · 36 holes · Par 95 · v14</p>
+  <p>Scorecard · works with no signal · 36 holes · Par 95 · v15</p>
   <div class="meta">
     <label>Your starting hole <select id="startSel" style="border:2px solid var(--red);border-radius:6px;padding:7px;font-size:15px;font-family:inherit;min-width:170px"></select></label>
     <label>Group <input id="event" type="text" placeholder="fills in from starting hole" readonly style="background:#E4E9F7;color:var(--green);font-weight:700"></label>
+    <span style="flex:1"></span>
+    <label>&nbsp;<button class="quiet" id="clear" style="font-size:13px;padding:8px 10px">Start new round</button></label>
+    <label>&nbsp;<button id="finalize" style="font-size:13px;padding:8px 10px;background:#FFD866;color:var(--green)">★ Finalize</button></label>
   </div>
 </header>
 <div class="stripes"></div>
@@ -182,8 +186,6 @@
 <div class="bar">
   <div class="seg"><button id="vHole">Hole by hole</button><button id="vCard" class="on">Full card</button></div>
   <button id="add">+ Add player</button>
-  <button id="finalize" style="background:var(--green);color:#FFD866">★ Finalize</button>
-  <button class="quiet" id="clear">Start new round</button>
   <span class="status" id="status"></span>
   <input type="file" id="restore" style="display:none">
 </div>
